@@ -34,7 +34,7 @@ def RHS(t, y, args):
 
 def jacob(t, y, args):
     pre = args
-    return [[dm(3.0, pre)*(dm(y, pre)**dm(2.0, pre)) - dm(2.0, pre)]]
+    return [[dm(3.0, pre)*(dm(y, pre)**dm(2.0, pre)) - dm(4.0, pre)*dm(y, pre) - dm(8.0, pre)]]
 
 prec = [25]
 tevs = [i/10 for i in range(0, 6, 1)]
