@@ -2,7 +2,11 @@
 """
 Created on Mon Feb  3 23:21:54 2020
 
-@author: tjcze
+Github: https://github.com/tjczec01
+
+@author: Travis J Czechorski 
+
+E-mail: tjczec01@gmail.com
 """
 from __future__ import division, print_function, absolute_import
 import numpy as np

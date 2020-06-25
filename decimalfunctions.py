@@ -2,7 +2,11 @@
 """
 Created on Fri Jun  5 19:39:06 2020
 
-@author: Travis Czechorski tjczec01@gmail.com
+Github: https://github.com/tjczec01
+
+@author: Travis J Czechorski 
+
+E-mail: tjczec01@gmail.com
 """
 from __future__ import division, print_function, absolute_import
 import decimal

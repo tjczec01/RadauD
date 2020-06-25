@@ -1,3 +1,14 @@
+# -*- coding: utf-8 -*-
+"""
+Created on Fri Jun  5 19:39:06 2020
+
+Github: https://github.com/tjczec01
+
+@author: Travis J Czechorski 
+
+E-mail: tjczec01@gmail.com
+"""
+
 from __future__ import division, print_function, absolute_import
 import butchertableau as bt
 import decimalfunctions as df

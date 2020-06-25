@@ -2,7 +2,11 @@
 """
 Created on Wed Jun 24 12:10:55 2020
 
-@author: tjcze
+Github: https://github.com/tjczec01
+
+@author: Travis J Czechorski 
+
+E-mail: tjczec01@gmail.com
 """
 
 from __future__ import division, print_function, absolute_import
@@ -33,7 +37,7 @@ def jacob(t, y, args):
     return [[dm(3.0, pre)*(dm(y, pre)**dm(2.0, pre)) - dm(2.0, pre)]]
 
 prec = [25]
-tevs = [i/100 for i in range(0, 51, 1)]
+tevs = [i/10 for i in range(0, 6, 1)]
 sol1 = solve_ivp(RHS, [0.0, 0.5], [1.0], t_eval=tevs,  method="Radau", args=(prec), jac=jacob)
 sol2 = solve_ivpd(RHS, [0.0, 0.5], [dm(1.0, prec)], t_eval=tevs,  method="RadauD", args=(prec), jac=jacob)
 print(sol1.t.tolist())
