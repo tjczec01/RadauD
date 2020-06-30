@@ -1,2 +1,2 @@
-# RadauD
-Arbitrary precision [Radau IIA](https://en.wikipedia.org/wiki/List_of_Runge%E2%80%93Kutta_methods#Radau_IIA_methods) method that utilities the [decimal](https://docs.python.org/3/library/decimal.html) library to allow numbers that would normally cause an overflow error. Code is based off of [SciPy's solve_ivp](https://docs.scipy.org/doc/scipy/reference/generated/scipy.integrate.solve_ivp.html) method.
+# RadauA
+Arbitrary number of digits or precision [Radau IIA](https://en.wikipedia.org/wiki/List_of_Runge%E2%80%93Kutta_methods#Radau_IIA_methods) method that utilities the [decimal](https://docs.python.org/3/library/decimal.html) or [mpmath](http://mpmath.org/doc/current/index.html) library to allow numbers that would normally cause an overflow error. Code is based off of [SciPy's solve_ivp](https://docs.scipy.org/doc/scipy/reference/generated/scipy.integrate.solve_ivp.html) method.
