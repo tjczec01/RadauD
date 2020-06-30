@@ -4,6 +4,7 @@ from warnings import warn
 import numpy as np
 from scipy.sparse import find, coo_matrix
 import decimal
+import mpmath as mp
 EPS = np.finfo(float).eps
 
 __name__ = "common"
@@ -21,6 +22,24 @@ def dm(v, pr):
        aa3 = str(aa2.format(val_i))
        aa4 = De(aa3)
        return aa4
+
+def mv(v, ds):
+        try:
+            mp.dps = int(ds)
+        except:
+            mp.dps = int(ds[0])
+        try:
+               mv = mp.mpf(v)
+        except:
+            try:
+               mv = mp.mpc(v.real, v.imag)
+            except:
+                try:
+                    mv = mp.mpf(v[0])
+                except:
+                    mv = mp.mpc(v[0].real, v[0].imag)
+        # print(mp.prec)
+        return mv
 
 def validate_first_step(first_step, t0, t_bound):
     """Assert that first_step is valid and return it."""
@@ -71,7 +90,7 @@ def validate_tol(rtol, atol, n):
 
 def norm(x):
     """Compute RMS norm."""
-    return np.linalg.norm(x) / x.size ** 0.5
+    return np.linalg.norm(x) / np.array(x).size ** 0.5
 
 
 def select_initial_step(fun, t0, y0, f0, direction, order, rtol, atol):
@@ -430,3 +449,5 @@ def _sparse_num_jac(fun, t, y, f, h, factor, y_scale, structure, groups):
 
 dm.__name__ = "dm"
 dm.__module__ = "dm"
+mv.__name__ = "mv"
+mv.__module__ = "mv"

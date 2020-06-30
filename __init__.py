@@ -13,11 +13,14 @@ if pth in plist:
 else:
        sys.path.append(r'{}'.format(ppath))
        
-__all__ = ["common", "base", "butchertableau", "decimalfunctions", "RadauD", "ivpd"]
+__all__ = ["common", "base", "butchertableau", "decimalfunctions", "mpfunctions", "RadauD", "RadauM", "ivpd", "ivpm"]
 
 import common
 import base
 import decimalfunctions
+import mpfunctions
 import butchertableau
 import RadauD
+import RadauM
 import ivpd
+import ivpm

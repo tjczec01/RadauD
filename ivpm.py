@@ -11,10 +11,10 @@ E-mail: tjczec01@gmail.com
 from __future__ import division, print_function, absolute_import
 import os
 import numpy as np
-from RadauD import RadauD
+from RadauM import RadauM
 from base import OdeSolver
 from common import EPS, OdeSolution, dm
-import decimalfunctions as df
+import mpfunctions as mf
 from scipy.optimize import brentq, OptimizeResult
 import inspect
 import sys
@@ -27,11 +27,11 @@ if pth in plist:
 else:
        sys.path.append(r'{}'.format(ppath))
        
-__name__ = "ivpd"
+__name__ = "ivpm"
 
-__all__ = ["OdeResult", "prepare_events", "solve_event_equation", "handle_events", "find_active_events", "solve_ivpd"]
+__all__ = ["OdeResult", "prepare_events", "solve_event_equation", "handle_events", "find_active_events", "solve_ivpm"]
 
-METHODS = {'RadauD' : RadauD}
+METHODS = {'RadauM' : RadauM}
 
 MESSAGES = {0: "The solver successfully reached the end of the integration interval.",
             1: "A termination event occurred."}
@@ -161,7 +161,7 @@ def find_active_events(g, g_new, direction):
     return np.nonzero(mask)[0]
 
 
-def solve_ivpd(fun, t_span, y0, method='RK45', t_eval=None, dense_output=False,
+def solve_ivpm(fun, t_span, y0, method='RK45', t_eval=None, dense_output=False,
               events=None, vectorized=False, args=None, **options):
     """Solve an initial value problem for a system of ODEs.
     This function numerically integrates a system of ordinary differential
@@ -623,10 +623,10 @@ def solve_ivpd(fun, t_span, y0, method='RK45', t_eval=None, dense_output=False,
 
     if t_eval is None:
         ts = np.array(ts)
-        ys = df.DF([ys], prec).TD()
+        ys = mf.MF([ys], prec).TD()
     else:
         ts = np.hstack(ts)
-        ys = df.DF([np.hstack(ys)], prec).decfunc()
+        ys = mf.MF([np.hstack(ys)], prec).decfunc()
 
     if dense_output:
         if t_eval is None:
@@ -640,5 +640,5 @@ def solve_ivpd(fun, t_span, y0, method='RK45', t_eval=None, dense_output=False,
                      nfev=solver.nfev, njev=solver.njev, nlu=solver.nlu,
                      status=status, message=message, success=status >= 0)
 
-solve_ivpd.__name_ = "solve_ivpd"
-solve_ivpd.__module_ = "solve_ivpd"
+solve_ivpm.__name_ = "solve_ivpm"
+solve_ivpm.__module_ = "solve_ivpm"
