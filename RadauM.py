@@ -1,11 +1,8 @@
 # -*- coding: utf-8 -*-
 """
 Created on Fri Jun  5 19:39:06 2020
-
 Github: https://github.com/tjczec01
-
-@author: Travis J Czechorski 
-
+@author: Travis J Czechorski
 E-mail: tjczec01@gmail.com
 """
 
@@ -28,52 +25,43 @@ ppath = os.path.dirname(os.path.abspath(__file__))
 pth = '{}'.format(ppath)
 if pth in plist:
        pass
-       
+
 else:
        sys.path.append(r'{}'.format(ppath))
-       
+
 __name__ = "RadauM"
 
 
 pth = r'{}'.format(ppath)
 
-__all__ = ["RadauM", "solve_ivpm", "dm", "mv", "Sf", "flatten", "solve_collocation_system",  "DCA", "DCS", "DCM", "DCD", "predict_factor", "RadauDenseOutput", "ComplexDecimal", "normd", "CP", "Tile", "Tfunc"]
+__all__ = ["RadauM", "solve_ivpm", "mv", "Sf", "flatten", "solve_collocation_system",  "DCA", "DCS", "DCM", "DCD", "predict_factor", "RadauDenseOutput", "ComplexDecimal", "normd", "CP", "Tile", "Tfunc"]
+
 
 def mv(v, pr):
-        with mp.workdps(int(pr)):
-            try:
-                   mv = mp.mpf(v)
-            except:
-                   mv = mp.mpc(v.real, v.imag)
-        return mv
-
-def dm(v, pr):
         mp.dps = int(pr)
         try:
                mv = mp.mpf(v)
         except:
                mv = mp.mpc(v.real, v.imag)
         return mv
-   
-dm.__name__ = "dm"
+
 mv.__name__ = "mv"
-flatten = lambda l: [item for sublist in l for item in sublist] 
+
+flatten = lambda l: [item for sublist in l for item in sublist]
 
 def Sf(o):
-    Sf.__name__ = "Sf"
     return int((o + 1)/2)
 
 S6 = 6 ** 0.5
-Eb = [-13 - 7 * S6, -13 + 7 * S6, -1] 
-# E = [dm(ei, PREC[0])/dm(3.0, PREC[0]) for ei in Eb]
-# Ef = mf.MF(E, PREC[0]).decfuncl(E)
+Eb = [-13 - 7 * S6, -13 + 7 * S6, -1]
+# E = [mv(ei, PREC[0])/mv(3.0, PREC[0]) for ei in Eb]
 order = 5
 # X = bt.butcher(order, PREC[0])
 # S = X.stage()
-S = Sf(order)
-# A, B, C = X.radau() 
-# Ainv = X.inv(A)        
-# T, TI = X.Tmat(Ainv)  
+SS = Sf(order)
+# A, B, C = X.radau()
+# Ainv = X.inv(A)
+# T, TI = X.Tmat(Ainv)
 # P = X.P(C)
 # D = mf.MF(A, PREC[0])
 # EIGS = X.eigs(Ainv)
@@ -89,42 +77,42 @@ MU_COMPLEX = 2.6810828736277488 - 3.050430199247423j
 # print(B)
 # print(C)
 
-A = [[0.19681547722366058, -0.06553542585019845, 0.023770974348220134], 
-      [0.39442431473908746, 0.29207341166522777, -0.04154875212599763], 
+A = [[0.19681547722366058, -0.06553542585019845, 0.023770974348220134],
+      [0.39442431473908746, 0.29207341166522777, -0.04154875212599763],
       [0.376403062700466, 0.512485826188424, 0.111111111111110]]
 
-AI = [[3.22474487139158, 1.16784008469041, -0.253197264742181], 
-      [-3.56784008469039, 0.775255128608406, 1.05319726474218], 
+AI = [[3.22474487139158, 1.16784008469041, -0.253197264742181],
+      [-3.56784008469039, 0.775255128608406, 1.05319726474218],
       [5.53197264742194, -7.53197264742187, 5.00000000000001]]
 
 B = [0.376403062700466, 0.512485826188424, 0.111111111111110]
 
 C = [0.15505102572168228, 0.6449489742783174, 1.0]
 
-T = [[0.0944387624889745, -0.141255295020953, 0.0300291941051473], 
-      [0.250213122965334, 0.204129352293798, -0.38294211275726], 
+T = [[0.0944387624889745, -0.141255295020953, 0.0300291941051473],
+      [0.250213122965334, 0.204129352293798, -0.38294211275726],
       [1.0, 1.0, 0.0]]
 
-# TD = mf.MF(T, PREC[0]).decfunc()
+# TD = mf.MF(T, PREC[0]).mfunc()
 
-TI = [[4.178718591551935, 0.32768282076106514, 0.5233764454994487], 
-      [-4.178718591551935, -0.3276828207610649, 0.476623554500551], 
+TI = [[4.178718591551935, 0.32768282076106514, 0.5233764454994487],
+      [-4.178718591551935, -0.3276828207610649, 0.476623554500551],
       [0.5028726349458223, -2.571926949855616, 0.5960392048282263]]
 
-# TID = mf.MF(TI, PREC[0]).decfunc()
+# TID = mf.MF(TI, PREC[0]).mfunc()
 # print(TID)
 
-P = [[10.048809399827414, -25.62959144707665, 15.580782047249254], 
-      [-1.38214273316075, 10.29625811374331, -8.914115380582556], 
+P = [[10.048809399827414, -25.62959144707665, 15.580782047249254],
+      [-1.38214273316075, 10.29625811374331, -8.914115380582556],
       [0.3333333333333328, -2.6666666666666616, 3.333333333333328]]
 
-# E = [dm(ei, PREC[0])/dm(3.0, PREC[0]) for ei in Eb]
-# Ef = mf.MF(E, PREC[0]).decfuncl(E)
-# TD = mf.MF(T, PREC[0]).decfunc()
-# TID = mf.MF(TI, PREC[0]).decfunc()
-# PD = mf.MF(P, PREC[0]).decfunc()
+# E = [mv(ei, PREC[0])/mv(3.0, PREC[0]) for ei in Eb]
+# Ef = mf.MF(E, PREC[0]).mfuncl(E)
+# TD = mf.MF(T, PREC[0]).mfunc()
+# TID = mf.MF(TI, PREC[0]).mfunc()
+# PD = mf.MF(P, PREC[0]).mfunc()
 
-NEWTON_MAXITER = 6  # Maximum number of Newton iterations.
+NEWTON_MAXITER = 60  # Maximum number of Newton iterations.
 MIN_FACTOR = 0.2  # Minimum allowed decrease in a step size.
 MAX_FACTOR = 10  # Maximum allowed increase in a step size.
 
@@ -137,13 +125,14 @@ def Tfunc(TI):
     for i in range(1, tl, 2):
        tc = [TI[i][ii] + 1j * TI[i+1][ii] for ii in range(tl)]
        TC.append(tc)
-       
+
     return TI_REAL, TC
 
-# TI_REAL, TI_COMPLEX = Tfunc(TI)
 
 TI_REAL = TI[0]
-TI_COMPLEX = [TI[1][i] + 1j * TI[2][i] for i in range(len(T[0]))]
+TIN = np.array(TI)
+
+TI_COMPLEX = TIN[1] + 1j * TIN[2]
 
 def CP(L):
        total = []
@@ -161,7 +150,7 @@ def Tile(l, x, y=None):
               for li in l:
                      til.append(li)
        if y is None or y == 0 or y == 0.0:
-             return til 
+             return til
        else:
               for yi in range(y):
                      tf.append(til)
@@ -169,9 +158,9 @@ def Tile(l, x, y=None):
 
 class ComplexDecimal(object):
     def __init__(self, value, prec):
-        self.real = dm(value.real, prec)
-        self.imag = dm(value.imag, prec)
-        self.vi = dm(value.imag, prec)
+        self.real = mv(value.real, prec)
+        self.imag = mv(value.imag, prec)
+        self.vi = mv(value.imag, prec)
         self.prec = prec
         if self.vi >= 0 or self.vi >= 0.0:
                self.sign = '+'
@@ -179,11 +168,11 @@ class ComplexDecimal(object):
                self.sign = '-'
     def __add__(self, other):
         result = ComplexDecimal(self)
-        result.real += dm(other.real, self.prec)
+        result.real += mv(other.real, self.prec)
         if other.imag >= 0 or other.imag >= 0.0:
-               result.imag += dm(other.imag, self.prec)
+               result.imag += mv(other.imag, self.prec)
         elif other.imag <= 0 or other.imag <= 0.0:
-               result.imag -= dm(other.imag, self.prec)
+               result.imag -= mv(other.imag, self.prec)
         return result
 
     __radd__ = __add__
@@ -199,21 +188,21 @@ class ComplexDecimal(object):
             return result
         else:
             result.imag = (-self.real).sqrt()
-            result.real = dm(0, self.prec)
+            result.real = mv(0, self.prec)
             return result
-     
+
     def real(self):
         result = ComplexDecimal(self)
         result.real = self.real
         return result
- 
+
     def imag(self):
         result = ComplexDecimal(self)
         result.imag = self.imag
-        return result   
+        return result
 
 def DCM(MUD, MUD2, prec):
-       __name__ = "DCM"
+       DCM.__name__ = "DCM"
        M1R = ComplexDecimal(MUD, prec).real
        M1C = ComplexDecimal(MUD, prec).imag
        M2R = ComplexDecimal(MUD2, prec).real
@@ -227,7 +216,7 @@ def DCM(MUD, MUD2, prec):
        return ComplexDecimal(complex(vvi, vvj), prec)
 
 def DCA(MUD, MUD2, prec):
-       __name__ = "DCA"
+       DCA.__name__ = "DCA"
        M1R = ComplexDecimal(MUD, prec).real
        M1C = ComplexDecimal(MUD, prec).imag
        M2R = ComplexDecimal(MUD2, prec).real
@@ -237,7 +226,7 @@ def DCA(MUD, MUD2, prec):
        return ComplexDecimal(complex(vv, vv2), prec)
 
 def DCS(MUD, MUD2, prec):
-       __name__ = "DCS"
+       DCS.__name__ = "DCS"
        M1R = ComplexDecimal(MUD, prec).real
        M1C = ComplexDecimal(MUD, prec).imag
        M2R = ComplexDecimal(MUD2, prec).real
@@ -247,7 +236,7 @@ def DCS(MUD, MUD2, prec):
        return ComplexDecimal(complex(vv, vv2), prec)
 
 def DCD(MUD, MUD2, prec):
-       __name__ = "DCD"
+       DCD.__name__ = "DCD"
        M3R = ComplexDecimal(MUD2, prec).real
        M3C = -ComplexDecimal(MUD2, prec).imag
        bot = DCM(MUD2, complex(M3R, M3C), prec).real
@@ -257,26 +246,19 @@ def DCD(MUD, MUD2, prec):
        return ComplexDecimal(complex(TR, TC), prec)
 
 def normd(A, prec):
-       __name__ = "normd"
+       normd.__name__ = "normd"
        rows = len(A)
        cols = len(A[0])
        vals = []
        for i in range(rows):
-              
+
               for j in range(cols):
-                     vi = dm(abs(A[i][j]), prec)**dm(2, prec)
+                     vi = mv(abs(A[i][j]), prec)**mv(2, prec)
                      vals.append(vi)
-                     
-       vf = dm(sum(vals), prec)**dm(1/2, prec)
+
+       vf = mv(sum(vals), prec)**mv(1/2, prec)
        return vf
 
-# v1 = ComplexDecimal(TI_COMPLEX[0], PREC[0]) 
-# v2 = ComplexDecimal(TI_COMPLEX[1], PREC[0]) 
-# v3 = ComplexDecimal(TI_COMPLEX[2], PREC[0])                     
-# TI_COMPLEXb = [v1, v2, v3]
-
-# MU_REALd = dm(3.637834252744502, PREC[0])
-# MU_COMPLEXd = ComplexDecimal(2.6810828736277488 - 3.050430199247423j, PREC[0])
 
 def solve_collocation_system(fun, t, y, h, Z0, scale, tol,
                              LU_real, LU_complex, solve_lu, prec):
@@ -315,71 +297,43 @@ def solve_collocation_system(fun, t, y, h, Z0, scale, tol,
     rate : float
         The rate of convergence.
     """
-    TD = mf.MF(T, prec).decfunc()
-    TID = mf.MF(TI, prec).decfunc()
-    E = [dm(ei, prec)/dm(3.0, prec) for ei in Eb]
-    Ef = mf.MF(E, prec).decfuncl(E)
-    n = len([y])
+    def Sf(o):
+     return int((o + 1)/2)
+    TM = mf.MF(T, prec).mfunc()
+    TIM = mf.MF(TI, prec).mfunc()
+    SS = Sf(5)
+    n = y.shape[0]
     M_real = MU_REAL / h
-    M_complex = MU_COMPLEX / mv(h, prec) #DCD(MU_COMPLEX, h, prec) 
-    ch = [dm(h*i, prec) for i in range(len(C))]
-    ZP = np.zeros((S, n), dtype=float).tolist()
-    for i in range(S):
-            for j in range(n):
-                   try:
-                       ZP[i][j] = fun(mv(t + mv(h, prec)*mv(C[i], prec), prec), mv(y, prec) + (mv(Z0[i][j], prec))).tolist()
-                   except:
-                       ZP[i][j] = [mv(fun(mv(t + mv(h, prec)*mv(C[i], prec), prec), mv(y[0], prec) + (mv(Z0[i][j], prec))).tolist()[0], prec)]
-    Z0P = np.array(flatten(ZP))
-    Zd = mf.MF(Z0P, prec).decfunc()
-    try:
-           W = np.array(np.array(TID).dot(Zd))
-    except:
-           W = np.array(np.array(TID).dot(Zd)) #, dtype=float
+    M_complex = MU_COMPLEX / mv(h, prec) #DCD(MU_COMPLEX, h, prec)
+    ch = np.array([mv(h*i, prec) for i in C])
     Z = Z0
-    F = np.empty((S, n))
-    ch = [mv(h*i, prec) for i in range(len(C))]
+    W = np.array(TIM).dot(Z0)
+
+    F = np.empty((SS, n))
     dW_norm_old = None
     dW = np.empty_like(W)
     dW2 = np.empty_like(W)
     converged = False
     rate = None
     for k in range(NEWTON_MAXITER):
-        for i in range(S):
-                   try:
-                       F[i] = mv(fun(mv(t, prec) + ch[i], mv(y, prec) + mv(Z[i][0], prec)), prec)
-                   except:
-                       try:
-                           F[i] = mv(fun(mv(t, prec) + ch[i], mv(y, prec) + mv(Z[i][0], prec))[0], prec)
-                       except:
-                           F[i] = mv(fun(mv(t, prec) + ch[i], mv(y[0], prec) + mv(Z[i][0], prec))[0], prec)
+        for i in range(SS):
+             F[i] = fun(mv(t, prec) + ch[i], y + Z[i])
 
         if not np.all(np.isfinite(F)):
             break
-        try:
-            try:
-                f_real = [mv(F.T.dot(TI_REAL), prec) - mv(M_real[0], prec) * mv(W[0][0], prec)]
-            except:
-                try:
-                    f_real = [mv(F.T.dot(TI_REAL)[0], prec) - mv(M_real, prec) * mv(W[0][0], prec)]
-                except:
-                    f_real = [mv(F.T.dot(TI_REAL)[0], prec) - mv(M_real[0], prec) * mv(W[0], prec)]
-        except:
-            f_real = [mv(F.T.dot(TI_REAL), prec) - mv(M_real[0], prec) * mv(W[0][0], prec)]
-        # fc1 = F.T.dot(TI_COMPLEX) - M_complex * TI_COMPLEX
-        # fc2 = [M_complex * TI_COMPLEX[0][i] for i in range(len(TI_COMPLEX))]
-        # fc3 = [i - j  for i, j in zip(fc1, fc2)]
-        # f_complex = [F.dot(TI_COMPLEX)[0].tolist()[i] - [M_complex * TI_COMPLEX[0][i] for i in range(len(TI_COMPLEX))][i] for i in range(len(TI_COMPLEX))][0] #F.dot(TI_COMPLEX)[0] - [M_complex * TI_COMPLEX[0][i] for i in TI_COMPLEX]
-        f_complex = F.T.dot(TI_COMPLEX) - M_complex *  mv(complex(W[1] ,  W[2]), prec)
-        dW_real = solve_lu(LU_real[0], LU_real[1], [f_real])
-        dW_complex = solve_lu(LU_complex[0], LU_complex[1], [f_complex])
-        dW[0] = dm(dW_real[0].real, prec)
-        dW[1] = dm(dW_complex[0].real, prec)
-        dW[2] = dm(dW_complex[0].imag, prec)
+        MR = [mv(M_real, prec) *  mv(W[0][i], prec) for i in range(len(W[0]))]
+        f_real = F.T.dot(TI_REAL) - np.array(MR)
+        MC = [M_complex *  mv(complex(W[1][i] ,  W[2][i]), prec) for i in range(len(W[1]))]
+        f_complex = F.T.dot(TI_COMPLEX) -  np.array(MC) #np.array(MC)
+        dW_real = solve_lu(LU_real[0], LU_real[1], f_real.tolist())
+        dW_complex = solve_lu(LU_complex[0], LU_complex[1], f_complex.tolist())
+        dW[0] = [mv(i.real, prec) for i in dW_real]
+        dW[1] = [mv(i.real, prec) for i in dW_complex]
+        dW[2] = [mv(i.imag, prec) for i in dW_complex]
         dW2[0] = dW_real[0].real
         dW2[1] = dW_complex[0].real
         dW2[2] = dW_complex[0].imag
-        dW_norm = normd(dW/scale, prec)
+        dW_norm = norm(dW/scale)
         if dW_norm_old is not None:
             rate = dW_norm / dW_norm_old
 
@@ -387,7 +341,7 @@ def solve_collocation_system(fun, t, y, h, Z0, scale, tol,
                 rate ** (NEWTON_MAXITER - k) / (1 - rate) * dW_norm > tol)):
             break
         W += dW
-        Z = np.array(TD).dot(W)
+        Z = np.array(TM).dot(W)
 
         if (dW_norm == 0 or
                 rate is not None and rate / (1 - rate) * dW_norm < tol):
@@ -531,7 +485,7 @@ class RadauM(OdeSolver):
            sparse Jacobian matrices", Journal of the Institute of Mathematics
            and its Applications, 13, pp. 117-120, 1974.
     """
-    def __init__(self, fun, t0, y0, t_bound, prec,  max_step=np.inf,
+    def __init__(self, fun, t0, y0, t_bound, prec, max_step=np.inf,
                  rtol=1e-3, atol=1e-6, jac=None, jac_sparsity=None,
                  vectorized=False, first_step=None, **extraneous):
         warn_extraneous(extraneous)
@@ -541,15 +495,10 @@ class RadauM(OdeSolver):
         self.max_step = validate_max_step(max_step)
         self.rtol, self.atol = validate_tol(rtol, atol, self.n)
         self.f = self.fun(self.t, self.y)
-        E = [dm(ei, self.prec)/dm(3.0, self.prec) for ei in Eb]
-        Ef = mf.MF(E, self.prec).decfuncl(E)
-        TD = mf.MF(T, self.prec).decfunc()
-        TID = mf.MF(TI, self.prec).decfunc()
-        PD = mf.MF(P, self.prec).decfunc()
         # Select initial step assuming the same order which is used to control
         # the error.
         if first_step is None:
-            self.h_abs = select_initial_step(self.fun, self.t, self.y, self.f, self.direction, S, self.rtol, self.atol)
+            self.h_abs = select_initial_step(self.fun, self.t, self.y, self.f, self.direction, SS, self.rtol, self.atol)
         else:
             self.h_abs = validate_first_step(first_step, t0, t_bound)
         self.h_abs_old = None
@@ -651,16 +600,13 @@ class RadauM(OdeSolver):
         t = self.t
         y = self.y
         f = self.f
-        E = [dm(ei, self.prec)/dm(3.0, self.prec) for ei in Eb]
-        Ef = mf.MF(E, self.prec).decfuncl(E)
-        # TD = mf.MF(T, self.prec).decfunc()
-        # TID = mf.MF(TI, self.prec).decfunc()
-        # PD = mf.MF(P, self.prec).decfunc()
+        E = [mv(ei, self.prec)/mv(3.0, self.prec) for ei in Eb]
+        Ef = mf.MF(E, self.prec).mfuncl(E)
         max_step = self.max_step
         atol = self.atol
         rtol = self.rtol
 
-        min_step = 10 * np.abs(np.nextafter(float(t), self.direction * np.inf) - float(t))        
+        min_step = 10.0 * np.abs(np.nextafter(float(t), self.direction * np.inf) - float(t))
         if self.h_abs > max_step:
             h_abs = max_step
             h_abs_old = None
@@ -687,29 +633,23 @@ class RadauM(OdeSolver):
         while not step_accepted:
             if h_abs < min_step:
                 return False, self.TOO_SMALL_STEP
-            h = float(h_abs) * self.direction
+            h = float(h_abs) * float(self.direction)
             t_new = float(t) + float(h)
 
-            if self.direction * (float(t_new) - float(self.t_bound)) > 0:
+            if self.direction * (float(t_new) - float(self.t_bound)) > 0 or float(self.direction) * (float(t_new) - float(self.t_bound)) > 0.0:
                 t_new = self.t_bound
 
             h = float(t_new) - float(t)
             h_abs = np.abs(h)
 
             if self.sol is None:
-                Z0 = np.zeros((S, y.shape[0]))
+                Z0 = np.zeros((SS, y.shape[0]))
             else:
                 CH = np.array([t + h*i for i in C])
-                Z1 = self.sol(CH).T
-                Z2 = [dm(i[0], self.prec) for i in Z1.tolist()]
-                Y = [dm(i, self.prec) for i in [y]]
-                Z0  = np.array([[Z2[i] - Y[j] for j in range(len(Y))] for i in range(len(Z2))])
-            try:
-                yv = y[0]
-            except:
-                yv = y
-            scale = dm(dm(float(atol), self.prec) + dm(yv, self.prec) * dm(rtol, self.prec), self.prec)
-            
+                Z0 = self.sol(CH).T - np.array(y)
+
+            scale = atol + np.abs(y) * rtol
+
             def matrix_subtraction(A, B):
                   """
                   Subtracts matrix B from matrix A and returns difference
@@ -724,38 +664,39 @@ class RadauM(OdeSolver):
                   colsB = len(B[0])
                   if rowsA != rowsB or colsA != colsB:
                       raise ArithmeticError('Matrices are NOT the same size.')
-              
+
                   # Section 2: Create a new matrix for the matrix difference
                   C = mf.MF(A, self.prec).zeros_matrix(rowsA, colsB)
-              
+
                   # Section 3: Perform element by element subtraction
                   for i in range(rowsA):
                       for j in range(colsB):
                           C[i][j] = A[i][j] - B[i][j]
-              
+
                   return C
-           
+
             def matrixsubc(A, B):
                      Z = []
                      for i in range(len(A)):
                          row = []
                          for j in range(len(A[i])):
                              VC = DCS(complex(A[i][j].real, A[i][j].imag), complex(B[i][j].real, B[i][j].imag), self.prec)
-                             row.append(complex(VC.real, VC.imag)) 
+                             row.append(complex(VC.real, VC.imag))
                          Z.append(row)
-                         
+
                      return Z
             converged = False
             while not converged:
                 if LU_real is None or LU_complex is None:
-                    # JJ = mf.MF([0.0], self.prec)
-                    # vr = MU_REAL / float(h)
-                    # vc = MU_COMPLEX / complex(h, 0.0)
-                    # IR = mf.MF([0.0], self.prec).idenv(len(J), vr)
-                    # IC = mf.MF([0.0], self.prec).idenfv(len(J), complex(vc.real, vc.imag))
-                    Lr, Ur = self.lu(MU_REAL / h * self.I - J)
+                    vr = MU_REAL / h
+                    vc = MU_COMPLEX / h
+                    IR = mf.MF([0.0], self.prec).idenv(len(J), vr)
+                    RF = np.array(IR) - np.array(J)
+                    IC = mf.MF([0.0], self.prec).idenvc(len(J), vc)
+                    CF = np.array(IC) - np.array(J)
+                    Lr, Ur = self.lu(RF)
                     LU_real = [Lr, Ur]
-                    Lc, Uc = self.lu(MU_COMPLEX / h * self.I - J)
+                    Lc, Uc = self.lu(CF)
                     LU_complex = [Lc, Uc]
 
                 converged, n_iter, Z, rate = solve_collocation_system(
@@ -776,24 +717,19 @@ class RadauM(OdeSolver):
                 LU_real = None
                 LU_complex = None
                 continue
-            try:
-                y_new = dm(y[0], self.prec) + dm(Z[-1][0], self.prec)
-            except:
-                y_new = dm(y, self.prec) + dm(Z[-1][0], self.prec)
-            ZE = np.array(Z).T.dot(np.array(Ef)) / dm(h, self.prec)
-            
-            error = self.solve_lu(LU_real[0], LU_real[1], [dm(f[0], self.prec) + dm(ZE[0], self.prec)])
-            scale = atol + float(np.maximum(np.abs(y), np.abs(y_new))) * rtol
-            error_norm = norm(error[0].real / scale)
+            y_new = y + Z[-1]
+            ZE = np.array(Z).T.dot(np.array(Ef)) / mv(h, self.prec)
+            error = self.solve_lu(LU_real[0], LU_real[1], f + ZE)
+            scale = atol + np.maximum(np.abs(y), np.abs(y_new)) * rtol
+            error_norm = norm(error / scale)
             safety = 0.9 * (2 * NEWTON_MAXITER + 1) / (2 * NEWTON_MAXITER + n_iter)
 
             if rejected and error_norm > 1:
-                error = mf.MF(LU_real, self.prec).solve(LU_real, self.fun(t, float(y[0]) + float(error[0].real)) + float(ZE))
-                error_norm = norm(float(error[0]) / scale)
+                 error = self.solve_lu(LU_real[0], LU_real[1], self.fun(t, y + error) + ZE)
+                 error_norm = norm(error / scale)
 
             if error_norm > 1:
-                factor = predict_factor(h_abs, h_abs_old,
-                                        error_norm, error_norm_old, self.prec)
+                factor = predict_factor(h_abs, h_abs_old, error_norm, error_norm_old, self.prec)
                 h_abs *= max(MIN_FACTOR, safety * factor)
 
                 LU_real = None
@@ -844,8 +780,7 @@ class RadauM(OdeSolver):
         return step_accepted, message
 
     def _compute_dense_output(self):
-        Qb = mf.MF(self.Z, self.prec)
-        Q = Qb.matrix_multiplyd(mf.MF(self.Z, self.prec).TD(), mf.MF(P, self.prec).decfunc(), self.prec)
+        Q = np.dot(mf.MF(self.Z.T, self.prec).mfunc(), mf.MF(P, self.prec).mfunc())
         return RadauDenseOutput(self.t_old, self.t, self.y_old, Q, self.prec)
 
     def _dense_output_impl(self):
@@ -857,45 +792,27 @@ class RadauDenseOutput(DenseOutput):
         super(RadauDenseOutput, self).__init__(t_old, t)
         self.h = t - float(t_old)
         self.Q = Q
-        self.order =  np.array(Q).shape[1] - 1
+        self.order = np.array(Q).shape[1] - 1
         self.y_old = y_old
         self.prec = prec
 
     def _call_impl(self, t):
-        x = (np.array(t, dtype=float) - np.array(self.t_old, dtype=float)) / float(self.h)
-        xd = [dm(xi, self.prec) for xi in x.tolist()]
+        x = (t - self.t_old) / self.h
         if t.ndim == 0:
-            pb = np.tile(np.array(xd), self.order + 1, 0)
+            pb = np.tile(np.array(x), self.order + 1, 0)
             p = np.cumprod(pb)
         else:
-            pb = np.tile(np.array(xd), (self.order + 1, 1))
+            pb = np.tile(np.array(x), (self.order + 1, 1))
             p = np.cumprod(pb, axis=0)
         # Here we don't multiply by h, not a mistake.
-        # try:
-        #     pl = [[dm(pii, self.prec) for pii in range(len(p.tolist()[0]))] for pi in p.tolist()]
-        # except:
-        #     pl = dm(p[0], self.prec)
         y = np.dot(self.Q, p)
-        yv = y.tolist()[0]
         if y.ndim == 2:
-            try:
-                try:
-                    yvb = [dm(i, self.prec) + dm(self.y_old[0], self.prec) for i in yv]
-                except:
-                    try:
-                        yvb = [dm(i[0], self.prec) + dm(self.y_old, self.prec) for i in yv]
-                    except:
-                        try:
-                            yvb = [dm(i, self.prec) + dm(self.y_old, self.prec) for i in yv]
-                        except:
-                            yvb = [dm(i[0], self.prec) + dm(self.y_old[0], self.prec) for i in yv]
-            except:
-                yvb = [dm(i, self.prec) + dm(self.y_old, self.prec) for i in yv]
+            y += self.y_old[:, None]
         else:
             y += self.y_old
 
-        return np.array([yvb])
- 
+        return y
+
 METHODS = {'RadauM' : RadauM}
 
 MESSAGES = {0: "The solver successfully reached the end of the integration interval.",
@@ -982,17 +899,17 @@ def handle_events(sol, events, active_events, is_terminal, t_old, t):
         Whether a terminal event occurred.
     """
     roots = [solve_event_equation(events[event_index], sol, t_old, t)
-             for event_index in active_events]
+              for event_index in active_events]
 
     roots = np.asarray(roots)
 
     if np.any(is_terminal[active_events]):
         if t > t_old:
-            order = np.argsort(roots)
+            orderh = np.argsort(roots)
         else:
-            order = np.argsort(-roots)
-        active_events = active_events[order]
-        roots = roots[order]
+            orderh = np.argsort(-roots)
+        active_events = active_events[orderh]
+        roots = roots[orderh]
         t = np.nonzero(is_terminal[active_events])[0][0]
         active_events = active_events[:t + 1]
         roots = roots[:t + 1]
@@ -1027,7 +944,7 @@ def find_active_events(g, g_new, direction):
     return np.nonzero(mask)[0]
 
 
-def solve_ivpm(fun, t_span, y0, prec, method='RK45',  t_eval=None, dense_output=False,
+def solve_ivpm(fun, t_span, y0, method='RadauM', t_eval=None, dense_output=False,
               events=None, vectorized=False, args=None, **options):
     """Solve an initial value problem for a system of ODEs.
     This function numerically integrates a system of ordinary differential
@@ -1129,7 +1046,7 @@ def solve_ivpm(fun, t_span, y0, prec, method='RK45',  t_eval=None, dense_output=
                 and vice versa if `direction` is negative. If 0, then either
                 direction will trigger event. Implicitly 0 if not assigned.
         You can assign attributes like ``event.terminal = True`` to any
-        function in Python. 
+        function in Python.
     vectorized : bool, optional
         Whether `fun` is implemented in a vectorized fashion. Default is False.
     args : tuple, optional
@@ -1192,7 +1109,7 @@ def solve_ivpm(fun, t_span, y0, prec, method='RK45',  t_eval=None, dense_output=
         illustration).  These parameters can be also used with ``jac=None`` to
         reduce the number of Jacobian elements estimated by finite differences.
     min_step : float, optional
-        The minimum allowed step size for 'LSODA' method. 
+        The minimum allowed step size for 'LSODA' method.
         By default `min_step` is zero.
     Returns
     -------
@@ -1229,34 +1146,34 @@ def solve_ivpm(fun, t_span, y0, prec, method='RK45',  t_eval=None, dense_output=
     References
     ----------
     .. [1] J. R. Dormand, P. J. Prince, "A family of embedded Runge-Kutta
-           formulae", Journal of Computational and Applied Mathematics, Vol. 6,
-           No. 1, pp. 19-26, 1980.
+            formulae", Journal of Computational and Applied Mathematics, Vol. 6,
+            No. 1, pp. 19-26, 1980.
     .. [2] L. W. Shampine, "Some Practical Runge-Kutta Formulas", Mathematics
-           of Computation,, Vol. 46, No. 173, pp. 135-150, 1986.
+            of Computation,, Vol. 46, No. 173, pp. 135-150, 1986.
     .. [3] P. Bogacki, L.F. Shampine, "A 3(2) Pair of Runge-Kutta Formulas",
-           Appl. Math. Lett. Vol. 2, No. 4. pp. 321-325, 1989.
+            Appl. Math. Lett. Vol. 2, No. 4. pp. 321-325, 1989.
     .. [4] E. Hairer, G. Wanner, "Solving Ordinary Differential Equations II:
-           Stiff and Differential-Algebraic Problems", Sec. IV.8.
+            Stiff and Differential-Algebraic Problems", Sec. IV.8.
     .. [5] `Backward Differentiation Formula
             <https://en.wikipedia.org/wiki/Backward_differentiation_formula>`_
             on Wikipedia.
     .. [6] L. F. Shampine, M. W. Reichelt, "THE MATLAB ODE SUITE", SIAM J. SCI.
-           COMPUTE., Vol. 18, No. 1, pp. 1-22, January 1997.
+            COMPUTE., Vol. 18, No. 1, pp. 1-22, January 1997.
     .. [7] A. C. Hindmarsh, "ODEPACK, A Systematized Collection of ODE
-           Solvers," IMACS Transactions on Scientific Computation, Vol 1.,
-           pp. 55-64, 1983.
+            Solvers," IMACS Transactions on Scientific Computation, Vol 1.,
+            pp. 55-64, 1983.
     .. [8] L. Petzold, "Automatic selection of methods for solving stiff and
-           nonstiff systems of ordinary differential equations", SIAM Journal
-           on Scientific and Statistical Computing, Vol. 4, No. 1, pp. 136-148,
-           1983.
+            nonstiff systems of ordinary differential equations", SIAM Journal
+            on Scientific and Statistical Computing, Vol. 4, No. 1, pp. 136-148,
+            1983.
     .. [9] `Stiff equation <https://en.wikipedia.org/wiki/Stiff_equation>`_ on
-           Wikipedia.
+            Wikipedia.
     .. [10] A. Curtis, M. J. D. Powell, and J. Reid, "On the estimation of
             sparse Jacobian matrices", Journal of the Institute of Mathematics
             and its Applications, 13, pp. 117-120, 1974.
     .. [11] `Cauchy-Riemann equations
-             <https://en.wikipedia.org/wiki/Cauchy-Riemann_equations>`_ on
-             Wikipedia.
+              <https://en.wikipedia.org/wiki/Cauchy-Riemann_equations>`_ on
+              Wikipedia.
     .. [12] `Lotka-Volterra equations
             <https://en.wikipedia.org/wiki/Lotka%E2%80%93Volterra_equations>`_
             on Wikipedia.
@@ -1276,9 +1193,9 @@ def solve_ivpm(fun, t_span, y0, prec, method='RK45',  t_eval=None, dense_output=
     >>> print(sol.y)
     [[2.         1.88836035 1.06327177 0.43319312 0.18017253 0.07483045
       0.03107158 0.01350781]
-     [4.         3.7767207  2.12654355 0.86638624 0.36034507 0.14966091
+      [4.         3.7767207  2.12654355 0.86638624 0.36034507 0.14966091
       0.06214316 0.02701561]
-     [8.         7.5534414  4.25308709 1.73277247 0.72069014 0.29932181
+      [8.         7.5534414  4.25308709 1.73277247 0.72069014 0.29932181
       0.12428631 0.05403123]]
     Specifying points where the solution is desired.
     >>> sol = solve_ivp(exponential_decay, [0, 10], [2, 4, 8],
@@ -1287,8 +1204,8 @@ def solve_ivpm(fun, t_span, y0, prec, method='RK45',  t_eval=None, dense_output=
     [ 0  1  2  4 10]
     >>> print(sol.y)
     [[2.         1.21305369 0.73534021 0.27066736 0.01350938]
-     [4.         2.42610739 1.47068043 0.54133472 0.02701876]
-     [8.         4.85221478 2.94136085 1.08266944 0.05403753]]
+      [4.         2.42610739 1.47068043 0.54133472 0.02701876]
+      [8.         4.85221478 2.94136085 1.08266944 0.05403753]]
     Cannon fired upward with terminal event upon impact. The ``terminal`` and
     ``direction`` fields of an event are applied by monkey patching a function.
     Here ``y[0]`` is position and ``y[1]`` is velocity. The projectile starts
@@ -1303,7 +1220,7 @@ def solve_ivpm(fun, t_span, y0, prec, method='RK45',  t_eval=None, dense_output=
     [array([40.])]
     >>> print(sol.t)
     [0.00000000e+00 9.99900010e-05 1.09989001e-03 1.10988901e-02
-     1.11088891e-01 1.11098890e+00 1.11099890e+01 4.00000000e+01]
+      1.11088891e-01 1.11098890e+00 1.11099890e+01 4.00000000e+01]
     Use `dense_output` and `events` to find position, which is 100, at the apex
     of the cannonball's trajectory. Apex is not defined as terminal, so both
     apex and hit_ground are found. There is no information at t=20, so the sol
@@ -1311,13 +1228,13 @@ def solve_ivpm(fun, t_span, y0, prec, method='RK45',  t_eval=None, dense_output=
     by setting ``dense_output=True``. Alternatively, the `y_events` attribute
     can be used to access the solution at the time of the event.
     >>> def apex(t, y): return y[1]
-    >>> sol = solve_ivp(upward_cannon, [0, 100], [0, 10], 
+    >>> sol = solve_ivp(upward_cannon, [0, 100], [0, 10],
     ...                 events=(hit_ground, apex), dense_output=True)
     >>> print(sol.t_events)
     [array([40.]), array([20.])]
     >>> print(sol.t)
     [0.00000000e+00 9.99900010e-05 1.09989001e-03 1.10988901e-02
-     1.11088891e-01 1.11098890e+00 1.11099890e+01 4.00000000e+01]
+      1.11088891e-01 1.11098890e+00 1.11099890e+01 4.00000000e+01]
     >>> print(sol.sol(sol.t_events[1][0]))
     [100.   0.]
     >>> print(sol.y_events)
@@ -1342,11 +1259,10 @@ def solve_ivpm(fun, t_span, y0, prec, method='RK45',  t_eval=None, dense_output=
     >>> plt.title('Lotka-Volterra System')
     >>> plt.show()
     """
-    __name__ = "solve_ivpm"
     if method not in METHODS and not (
             inspect.isclass(method) and issubclass(method, OdeSolver)):
         raise ValueError("`method` must be one of {} or OdeSolver class."
-                         .format(METHODS))
+                          .format(METHODS))
 
     t0, tf = float(t_span[0]), float(t_span[1])
 
@@ -1380,14 +1296,14 @@ def solve_ivpm(fun, t_span, y0, prec, method='RK45',  t_eval=None, dense_output=
             t_eval_i = t_eval.shape[0]
 
     if method in METHODS:
-        method = METHODS[method]
+        method = METHODS.get('RadauM', [RadauM])
 
     solver = method(fun, t0, y0, tf, vectorized=vectorized, **options)
 
     if t_eval is None:
         # print(y0)
         ts = [t0]
-        ys = [dm(y0[0], prec)]
+        ys = [y0]
     elif t_eval is not None and dense_output:
         ts = []
         ti = [t0]
@@ -1458,7 +1374,7 @@ def solve_ivpm(fun, t_span, y0, prec, method='RK45',  t_eval=None, dense_output=
 
         if t_eval is None:
             ts.append(t)
-            ys.append(dm(y, prec))
+            ys.append(y)
         else:
             # The value in t_eval equal to t will be included.
             if solver.direction > 0:
@@ -1475,9 +1391,9 @@ def solve_ivpm(fun, t_span, y0, prec, method='RK45',  t_eval=None, dense_output=
                 if sol is None:
                     sol = solver.dense_output()
                 ts.append(t_eval_step)
-                ys.append(sol(t_eval_step).tolist()[-1])
+                ys.append(sol(t_eval_step))
                 t_eval_i = t_eval_i_new
-        
+
         if t_eval is not None and dense_output:
             ti.append(t)
 
@@ -1489,10 +1405,10 @@ def solve_ivpm(fun, t_span, y0, prec, method='RK45',  t_eval=None, dense_output=
 
     if t_eval is None:
         ts = np.array(ts)
-        ys = mf.MF([ys], prec).TD()
+        ys = np.vstack(ys).T
     else:
         ts = np.hstack(ts)
-        ys = mf.MF([np.hstack(ys)], prec).decfunc()
+        ys = np.hstack(ys)
 
     if dense_output:
         if t_eval is None:
@@ -1503,21 +1419,18 @@ def solve_ivpm(fun, t_span, y0, prec, method='RK45',  t_eval=None, dense_output=
         sol = None
 
     return OdeResult(t=ts, y=ys, sol=sol, t_events=t_events, y_events=y_events,
-                     nfev=solver.nfev, njev=solver.njev, nlu=solver.nlu,
-                     status=status, message=message, success=status >= 0)
-
-solve_ivpm.__name__ = "solve_ivpm"       
-
-def exponential_decay(t, y, args): 
-       pre = args
-       try:
-              yn = [dm(-0.5, pre)*dm(i, pre) for i in y]
-              return yn
-              
-       except:
-              yn = dm(-0.5, pre)*dm(y, pre)
-              return [yn]
+                      nfev=solver.nfev, njev=solver.njev, nlu=solver.nlu,
+                      status=status, message=message, success=status >= 0)
 
 
+solve_ivpm.__name__ = "solve_ivpm"
 
+# def exponential_decay(t, y, args):
+#         pre = args
+#         try:
+#               yn = [mv(-0.5, pre)*mv(i, pre) for i in y]
+#               return yn
 
+#         except:
+#               yn = mv(-0.5, pre)*mv(y, pre)
+#               return [yn]

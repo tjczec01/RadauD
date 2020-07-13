@@ -10,9 +10,8 @@ E-mail: tjczec01@gmail.com
 """
 from __future__ import division, print_function, absolute_import
 import mpmath as mp
-from mpmath import *
+from mpmath import fdot, mpf, mpc
 import os
-import importlib.util
 import numpy as np
 
 # For illustrative purposes.
@@ -24,158 +23,25 @@ pth = r'{}'.format(ppath)
 
 __all__ = ["MF", "mat"] 
 
-# De = decimal.Decimal
 
 def mv(v, ds):
-        mp.dps = int(ds)
-        mv = mp.mpf(v)
-        # print(mp.prec)
+        try:
+            mp.dps = int(ds)
+        except:
+            mp.dps = int(ds[0])
+        try:
+               mv = mpf(v)
+        except:
+            try:
+               mv = mpc(v.real, v.imag)
+            except:
+                try:
+                    mv = mpf(v[0])
+                except:
+                    mv = mpc(v[0].real, v[0].imag)
         return mv
-
-# def dm(v, pr):
-       # De = decimal.Decimal
-       # val_i = De(v)
-       # aa = '{}:.{}f{}'.format('{', pr,'}')
-       # aa1 = '{}'.format(aa)
-       # aa2 = str(aa1)
-       # aa3 = str(aa2.format(val_i))
-       # aa4 = De(aa3)
-       # return aa4
-
-# print(mv(4.555, 50))
-# print(mp.prec)
-# class ComplexDecimal(object):
-#             def __init__(self, value, prec):
-#                 self.real = dm(value.real, prec)
-#                 self.imag = dm(value.imag, prec)
-#                 self.vi = float(value.imag)
-#                 self.prec = prec
-#                 if self.vi >= 0 or self.vi >= 0.0:
-#                        self.sign = '+'
-#                 elif self.vi <= 0 or self.vi <= 0.0:
-#                        self.sign = '-'
-#             def __add__(self, other):
-#                 result = ComplexDecimal(self)
-#                 result.real += dm(other.real, self.prec)
-#                 if other.imag >= 0 or other.imag >= 0.0:
-#                        result.imag += dm(other.imag, self.prec)
-#                 elif other.imag <= 0 or other.imag <= 0.0:
-#                        result.imag -= dm(other.imag, self.prec)
-#                 return result
-        
-#             __radd__ = __add__
-#             def __str__(self):
-#                       return f'({self.real} {self.sign} {abs(self.imag)}j)'
-        
-#             def sqrt(self):
-#                 result = ComplexDecimal(self)
-#                 if self.imag:
-#                     raise NotImplementedError
-#                 elif self.real > 0:
-#                     result.real = self.real.sqrt()
-#                     return result
-#                 else:
-#                     result.imag = (-self.real).sqrt()
-#                     result.real = dm(0, self.prec)
-#                     return result
-             
-#             def real(self):
-#                 result = ComplexDecimal(self)
-#                 result.real = self.real
-#                 return result
-         
-#             def imag(self):
-#                 result = ComplexDecimal(self)
-#                 result.imag = self.imag
-#                 return result
-
-# class ComplexDecimalr(object):
-#             def __init__(self, valuer, valuei, prec):
-#                 self.real = dm(valuer, prec)
-#                 self.imag = dm(valuei, prec)
-#                 self.vi = float(valuei)
-#                 self.prec = prec
-#                 if self.vi >= 0 or self.vi >= 0.0:
-#                        self.sign = '+'
-#                 elif self.vi <= 0 or self.vi <= 0.0:
-#                        self.sign = '-'
-#             def __add__(self, other):
-#                 result = ComplexDecimal(self)
-#                 result.real += dm(self.real, self.prec)
-#                 if self.vi >= 0 or self.vi >= 0.0:
-#                        result.imag += dm(other.imag, self.prec)
-#                 elif self.vi <= 0 or self.vi <= 0.0:
-#                        result.imag -= dm(other.imag, self.prec)
-#                 return result
-        
-#             __radd__ = __add__
-#             def __str__(self):
-#                       return f'({self.real} {self.sign} {abs(self.imag)}j)'
-        
-#             def sqrt(self):
-#                 result = ComplexDecimal(self)
-#                 if self.imag:
-#                     raise NotImplementedError
-#                 elif self.real > 0:
-#                     result.real = self.real.sqrt()
-#                     return result
-#                 else:
-#                     result.imag = (-self.real).sqrt()
-#                     result.real = dm(0, self.prec)
-#                     return result
-             
-#             def real(self):
-#                 result = ComplexDecimal(self)
-#                 result.real = self.real
-#                 return result
-         
-#             def imag(self):
-#                 result = ComplexDecimal(self)
-#                 result.imag = self.imag
-#                 return result
-
-# def DCM(MUD, MUD2, prec):
-#        M1R = ComplexDecimal(MUD, prec).real
-#        M1C = ComplexDecimal(MUD, prec).imag
-#        M2R = ComplexDecimal(MUD2, prec).real
-#        M2C = ComplexDecimal(MUD2, prec).imag
-#        vv = M1R*M2R
-#        vv2 = M1C*M2R
-#        vv3 = M1R*M2C
-#        vv4 = M1C*M2C
-#        vvi = vv - vv4
-#        vvj = vv3 + vv2
-#        # return ComplexDecimalr(vvi, vvj, prec)
-#        return ComplexDecimal(complex(vvi, vvj), prec)
-
-# def DCA(MUD, MUD2, prec):
-#        M1R = ComplexDecimal(MUD, prec).real
-#        M1C = ComplexDecimal(MUD, prec).imag
-#        M2R = ComplexDecimal(MUD2, prec).real
-#        M2C = ComplexDecimal(MUD2, prec).imag
-#        vv = M1R + M2R
-#        vv2 = M1C + M2C
-#        return ComplexDecimal(complex(vv, vv2), prec)
-#        # return ComplexDecimalr(vv, vv2, prec)
-
-# def DCS(MUD, MUD2, prec):
-#        M1R = ComplexDecimal(MUD, prec).real
-#        M1C = ComplexDecimal(MUD, prec).imag
-#        M2R = ComplexDecimal(MUD2, prec).real
-#        M2C = ComplexDecimal(MUD2, prec).imag
-#        vv = M1R - M2R
-#        vv2 = M1C - M2C
-#        # return ComplexDecimalr(vv , vv2, prec)
-#        return ComplexDecimal(complex(vv, vv2), prec)
-
-# def DCD(MUD, MUD2, prec):
-#        M3R = ComplexDecimal(MUD2, prec).real
-#        M3C = -ComplexDecimal(MUD2, prec).imag
-#        bot = DCM(MUD2, complex(M3R, M3C), prec).real
-#        top = DCM(MUD, complex(M3R, M3C), prec)
-#        TR = top.real / bot
-#        TC = top.imag / bot
-#        return ComplexDecimal(complex(TR, TC), prec)
+   
+flatten = lambda l: [item for sublist in l for item in sublist]
 
 def normd(A, prec):
        rows = len(A)
@@ -200,74 +66,46 @@ class MF:
                   self.pr = int(pr[0])
               self.__name__ = "MF"
               
-       # class ComplexDecimal(object):
-       #      def __init__(self, value, prec):
-       #          self.real = dm(value.real, prec)
-       #          self.imag = dm(value.imag, prec)
-       #          self.vi = float(value.imag)
-       #          self.prec = prec
-       #          if self.vi >= 0 or self.vi >= 0.0:
-       #                 self.sign = '+'
-       #          elif self.vi <= 0 or self.vi <= 0.0:
-       #                 self.sign = '-'
-       #      def __add__(self, other):
-       #          result = ComplexDecimal(self)
-       #          result.real += dm(other.real, self.prec)
-       #          if other.imag >= 0 or other.imag >= 0.0:
-       #                 result.imag += dm(other.imag, self.prec)
-       #          elif other.imag <= 0 or other.imag <= 0.0:
-       #                 result.imag -= dm(other.imag, self.prec)
-       #          return result
-        
-       #      __radd__ = __add__
-       #      # vi = value.imag
-       #      # if vi >= 0 or vi >= 0.0:
-       #      def __str__(self):
-       #                return f'({self.real} {self.sign} {abs(self.imag)}j)'
-       #      # elif vi <= 0 or vi <= 0.0:
-       #      #            def __str__(self):
-       #      #                   return f'({str(self.real)} - {str(self.imag)}j)'
-        
-       #      # def __str__(self):
-       #      #     return f'({str(self.real)} + {str(self.imag)}j)'
-        
-       #      # def __strs__(self):
-       #      #     return f'({str(self.real)} - {str(self.imag)}j)'
-        
-       #      def sqrt(self):
-       #          result = ComplexDecimal(self)
-       #          if self.imag:
-       #              raise NotImplementedError
-       #          elif self.real > 0:
-       #              result.real = self.real.sqrt()
-       #              return result
-       #          else:
-       #              result.imag = (-self.real).sqrt()
-       #              result.real = dm(0, self.prec)
-       #              return result
-             
-       #      def real(self):
-       #          result = ComplexDecimal(self)
-       #          result.real = self.real
-       #          return result
-         
-       #      def imag(self):
-       #          result = ComplexDecimal(self)
-       #          result.imag = self.imag
-       #          return result
-              
-       def mmake(self, v):
-           mp.dps = int(self.pr)
-           try:
-               mv = mp.mpf(v)
-           except:
-               mv = mp.mpc(v.real, v.imag)
-           return mv
        
-       def mmakec(self, vr, vi):
+       flatten = lambda l: [item for sublist in l for item in sublist]
+       
+       def mmake(self, v):
+             try:
+                 mp.dps = int(self.pr)
+             except:
+                 mp.dps = int(self.pr[0])
+             try:
+                    mv = mpf(v)
+             except:
+                 try:
+                    mv = mpc(v.real, v.imag)
+                 except:
+                     try:
+                         mv = mpf(v[0])
+                     except:
+                         mv = mpc(v[0].real, v[0].imag)
+             return mv     
+       
+       
+       def mmakec(self, vs):
            mp.dps = int(self.pr)
-           mv = mp.mpc(vr, vi)
-           return mv 
+           vr = []
+           vc = []
+           try:
+                len(vs)
+                VS = vs
+           except:
+                VS = [vs]
+           for i in range(len(VS)):
+                vr.append(VS[i].real)
+                vc.append(VS[i].imag)
+           try:
+                 ivs = len(vr) 
+                 mv = [mp.mpc(vr[i], vc[i]) for i in range(ivs)]
+                 return flatten(mv)
+           except:
+                 mv = mp.mpc(vr[0], vc[0])
+                 return mv 
        
        def TD(self):
               columns = len(self.Ax[0][:])
@@ -291,9 +129,13 @@ class MF:
                             tmat[j][i] = vvf
               return tmat
        
-       def dotd(self, v1, v2):
-              vv = self.mmake(sum([self.mmake(x)*self.mmake(y) for x, y in zip(v1, v2)]))
+       def dotdc(self, v1, v2):
+              vv = fdot(v1, v2) 
               return vv
+         
+       def dotd(self, v1, v2):
+              vv = fdot(v1, v2)
+              return vv   
        
        def zeros_matrix(self, rows, cols):
            """
@@ -345,7 +187,7 @@ class MF:
            def uvalsd(Um, k, n):
                    ulist = []
                    for i in range(k):
-                         uu = self.mmake(Um[i][n])
+                         uu = Um[i][n]
                          ulist.append(uu)
                    return ulist
             
@@ -354,31 +196,36 @@ class MF:
                    lu = Lm[k]
                    lul = lu[0:k]
                    for i in range(len(lul)):
-                            val_ij = self.mmake(lul[i])
+                            val_ij = lul[i]
                             llist.append(val_ij)
                    return lul
               
            for k in range(N):
-               v1 = self.mmake(1.0)
-               L[k][k] = v1
-               # print(type(self.Ax[k][k]))
                try:
-                   v2 = self.mmake((self.mmake(self.Ax[k][k]) - self.mmake(self.dotd(lvalsd(L, k, k), uvalsd(U, k, k)))) / self.mmake(L[k][k]))
+                    v1 = self.mmake(1.0)
+                    L[k][k] = v1
+                    v2 = self.mmake((self.mmake(self.Ax[k][k]) - self.mmake(self.dotd(lvalsd(L, k, k), uvalsd(U, k, k)))) / self.mmake(L[k][k]))
                except:
-                   # v2r = self.mmake((self.mmake(self.Ax[k][k].real) - self.mmake(self.dotd(lvalsd(L, k, k), uvalsd(U, k, k)))) / self.mmake(L[k][k].real))
-                    # print(v2r)
-                   v2b = self.dotd(lvalsd(L, k, k), uvalsd(U, k, k))
-                   v2c = self.mmakec(self.Ax[k][k].real, self.Ax[k][k].imag) - self.mmakec(v2b.real, v2b.imag)
-                   v2 = self.mmakec(v2c.real, v2c.imag) / self.mmakec(L[k][k].real, L[k][k].imag)
-                   # v2 = DCD(DCS(self.Ax[k][k], self.dotd(lvalsd(L, k, k), uvalsd(U, k, k)), self.pr), L[k][k], self.pr)
-                   # print(v1i)
-                   # v2i = self.mmake((self.mmake(self.Ax[k][k].imag) - self.mmake(self.dotd(lvalsd(L, k, k), uvalsd(U, k, k)))) / self.mmake(L[k][k].imag))
+                   v1 = self.mmakec(complex(1.0, 0.0))
+                   L[k][k] = v1
+                   v2b = self.dotdc(lvalsd(L, k, k), uvalsd(U, k, k))
+                   v2c = self.mmakec(self.Ax[k][k]) - self.mmakec(v2b)
+                   v2 = self.mmakec(v2c) / self.mmakec(L[k][k])
                U[k][k] = v2
-               for j in range(k+1, N):
-                     val_i = self.mmake(self.mmake((self.mmake(self.Ax[k][j]) - self.mmake(self.dotd(lvalsd(L, k, k), uvalsd(U, j, j)))) / self.mmake(L[k][k])))
+               try:
+                    
+                    for j in range(k+1, N):
+                          val_i = self.mmake(self.mmake((self.mmake(self.Ax[k][j]) - self.mmake(self.dotd(lvalsd(L, k, k), uvalsd(U, j, j)))) / self.mmake(L[k][k])))
+                          U[k][j] = val_i
+                    for i in range(k+1, N):
+                          val_ib = self.mmake(self.mmake((self.mmake(self.Ax[i][k]) - self.mmake(self.dotd(lvalsd(L, i, i), uvalsd(U, k, k)))) / self.mmake(U[k][k])))
+                          L[i][k] = val_ib
+               except:
+                    for j in range(k+1, N):
+                     val_i = self.mmakec(self.mmakec((self.mmakec(self.Ax[k][j]) - self.mmakec(self.dotdc(lvalsd(L, k, k), uvalsd(U, j, j)))) / self.mmakec(L[k][k])))
                      U[k][j] = val_i
-               for i in range(k+1, N):
-                     val_ib = self.mmake(self.mmake((self.mmake(self.Ax[i][k]) - self.mmake(self.dotd(lvalsd(L, i, i), uvalsd(U, k, k)))) / self.mmake(U[k][k])))
+                    for i in range(k+1, N):
+                     val_ib = self.mmakec(self.mmakec((self.mmakec(self.Ax[i][k]) - self.mmakec(self.dotdc(lvalsd(L, i, i), uvalsd(U, k, k)))) / self.mmakec(U[k][k])))
                      L[i][k] = val_ib
        
            return L, U
@@ -422,7 +269,7 @@ class MF:
            for k in range(N):
                v1 = 1.0
                L[k][k] = v1
-               v2 = (self.Ax[k][k] - float(self.dotd(lvalsd(L, k, k), uvalsd(U, k, k)))) / L[k][k]
+               v2 = (self.Ax[k][k] - self.dotd(lvalsd(L, k, k), uvalsd(U, k, k))) / L[k][k]
                U[k][k] = v2
                for j in range(k+1, N):
                      val_i = (self.Ax[k][j] - self.dotd(lvalsd(L, k, k), uvalsd(U, j, j))) / L[k][k]
@@ -444,7 +291,6 @@ class MF:
                      v1 = self.mmake(self.mmake(L[i][j])*self.mmake(y[j]))
                      v2 = self.mmake(y[i]) 
                      v3 = self.mmake(v2 - v1)
-                     val_i = self.mmake(self.mmake(y[i])-self.mmake(self.mmake(L[i][j])*self.mmake(y[j])))
                      y[i]= v3
                y[i] = self.mmake(self.mmake(y[i])/self.mmake(L[i][i]))
        
@@ -455,13 +301,6 @@ class MF:
            compute the solution vector x solving Ux = y."""
             
            x = [self.mmake(0.0) for ix in y]
-           # Us = len(U[0])
-           # US = len(U[1])
-           # for i in range(Us-1, -1, -1): 
-           #     for j in range(i+1, US):
-           #         y[i] -= U[i][j]*y[j]
-           #     x[i] = y[i]/U[i][i]
-           # return x
            for i in range(len(x)-1, 0, -1):
                val_i = self.mmake((self.mmake(y[i-1]) - self.mmake(self.dotd(U[i-1][i:], x[i:]))) / self.mmake(U[i-1][i-1]))
                x[i-1] = self.mmake(val_i)
@@ -471,27 +310,19 @@ class MF:
        def forward_sub(self, L, b):
            """Given a lower triangular matrix L and right-side vector b,
            compute the solution vector y solving Ly = b."""
-       
-           y = []
-           for i in range(len(b)):
-               y.append(b[i])
-               for j in range(i):
-                     v1 = L[i][j]*y[j]
-                     v2 = y[i] 
-                     v3 = v2 - v1
-                     val_i = self.mmake(self.mmake(y[i])-self.mmake(self.mmake(L[i][j])*self.mmake(y[j])))
-                     y[i]= val_i #v3
-               try:
-                   try:
-                       y[i] = self.mmake(y[i][0])/self.mmake(L[i][i][0])
-                   except:
-                       try:
-                           y[i] = self.mmake(y[i][0])/self.mmake(L[i][i])
-                       except:
-                           pass
-               except:
-                   y[i] = self.mmake(y[i])/self.mmake(L[i][i])
-       
+           y = b
+           try:
+                
+                for i in range(len(b)):
+                     for j in range(i):
+                          y[i] = self.mmake(self.mmake(y[i]) - self.mmake(self.mmake(L[i][j])*self.mmake(y[j])))
+                y[i] = self.mmake(self.mmake(y[i])/self.mmake(L[i][i]))
+                
+           except:
+              for i in range(len(b)):
+                for j in range(i):
+                     y[i] = self.mmakec(self.mmakec(y[i]) - self.mmakec(self.mmakec(L[i][j])*self.mmakec(y[j])))
+                y[i] = self.mmakec(self.mmakec(y[i])/self.mmakec(L[i][i]))  
            return y
        
        def backward_sub(self, U, y):
@@ -499,21 +330,31 @@ class MF:
            compute the solution vector x solving Ux = y."""
             
            x = [self.mmake(0.0) for ix in y]
-           XX = [self.mmakec(0.0, 0.0) for ix in y]
-           # Us = len(U[0])
-           # US = len(U[1])
-           # for i in range(Us-1, -1, -1): 
-           #     for j in range(i+1, US):
-           #         y[i] -= U[i][j]*y[j]
-           #     x[i] = y[i]/U[i][i]
-           # return x
-           for i in range(len(x), 0, -1):
+           XX = [self.mmakec(complex(0.0, 0.0)) for ix in y]
+           for i in range(len(x)-1, -1, -1):
                try:
-                        val_i = (self.mmakec(y[i-1].real, y[i-1].imag) - np.dot(U[i-1][i:], XX[i:])) / self.mmakec(U[i-1][i-1].real, U[i-1][i-1].imag)
+                        val_i = self.mmake(y[i-1] - self.dotd(U[i-1][i-1:], x[i-1:])) / self.mmake(U[i-1][i-1])
                except:
-                        val_i = self.mmake(y[i-1] - np.dot(U[i-1][i:], x[i:])) / self.mmake(U[i-1][i-1][0])
+                    try:
+                         try:
+                              val_i = self.mmake(y[i-1] - self.dotd(U[i][i:], x[i:])) / self.mmake(U[i-1][i-1])
+                         except:
+                              try:
+                                   val_i = self.mmake(y[i-1] - self.dotd(U[i][i-1:], x[i:])) / self.mmake(U[i-1][i-1])
+                              except:
+                                   val_i = self.mmake(y[i-1] - self.dotd(U[i][i:], x[i-1:])) / self.mmake(U[i-1][i-1])
+                    except:
+                         try:
+                              val_i = (self.mmakec(y[i-1]) - self.dotdc(U[i-1][i-1:], XX[i-1:])) / self.mmakec(U[i-1][i-1])
+                         except:
+                              try:
+                                   val_i = (self.mmakec(y[i-1]) - self.dotdc(U[i][i:], XX[i:])) / self.mmakec(U[i-1][i-1])
+                              except:
+                                   try:
+                                        val_i = (self.mmakec(y[i-1]) - self.dotdc(U[i][i:], XX[i:])) / self.mmakec(U[i-1][i-1])
+                                   except:
+                                        val_i = (self.mmakec(y[i-1]) - self.dotdc(U[i][i:], XX[i:])) / self.mmakec(U[i-1][i-1])
                x[i-1] = val_i
-              
            return x
        
        def lu_solved(self, L, U, b):
@@ -521,11 +362,6 @@ class MF:
            # Step 2: Solve Lx = y using backward substitution
            y = self.forward_sub(L, b)
            x = self.backward_sub(U, y)
-           # yv = []
-           # for i in range(len(y)):
-           #    val_yi = y[i]
-           #    yv.append(val_yi)
-           # x = self.backward_sub(U, y)
            return x
        
        def linear_solved(self, bd):
@@ -533,7 +369,7 @@ class MF:
            x = self.lu_solved(Ld, Ud, bd)
            return x
        
-       def decfunc(self):
+       def mfunc(self):
               rows = len(self.Ax)
               cols = len(self.Ax[0])
               AD = [[self.mmake(ij) for ij in self.Ax[ii]] for ii in range(len(self.Ax))]
@@ -543,7 +379,7 @@ class MF:
                             AD[i][j] = val_ij
               return AD
         
-       def decfuncb(self, Ax):
+       def mfuncb(self, Ax):
               rows = len(Ax)
               cols = len(Ax[0])
               AD = [[self.mmake(ij) for ij in Ax[ii]] for ii in range(len(Ax))]
@@ -553,7 +389,7 @@ class MF:
                             AD[i][j] = val_ij
               return AD
        
-       def decfuncl(self, Axl):
+       def mfuncl(self, Axl):
               vals = len(Axl)
               ADl = [self.mmake(il) for il in Axl]
               for i in range(vals):
@@ -644,15 +480,6 @@ class MF:
                          
                      return Z
        
-       # def matrixsubc(self, A, B):
-       #               Z = []
-       #               for i in range(len(A)):
-       #                   row = []
-       #                   for j in range(len(A[i])):
-       #                       row.append(DCS(A[i][j], B[i][j], self.prec)) 
-       #                   Z.append(row)
-                         
-       #               return Z
        
        def pivot_matrix(self, M):
            """Returns the pivoting matrix for M, used in Doolittle's method."""
@@ -664,30 +491,22 @@ class MF:
            r = [0]
            # Rearrange the identity matrix such that the largest element of                                                                                                                                                                                   
            # each column of M is placed on the diagonal of of M  
-           jj = 0                                                                                                                                                                                             
            for j in range(m):
                   
               rowv = max(range(j, m), key=lambda i: abs(M[i][j]))
               rv = max(r)
               if j == MM:
-                     # print(rowv)
                      rowv = rowv + 1
-                      
               else:
                      pass
               if rowv > rv:
                      r.append(rowv)
-                     row = max(r)
               else:
-                     row = max(r)
-              # print(row)
-              # if j != max(r):
+                     pass
                    # Swap the rows                                                                                                                                                                                                                            
               id_mat[j], id_mat[max(r)] = id_mat[max(r)], id_mat[j]
               ID.append(id_mat[j])
               
-              # ID[j-jj] = id_mat[max(r)]
-           # print(ID)
            return ID
        
        def plud(self):
@@ -707,8 +526,6 @@ class MF:
                   PA = self.matrix_multiplyd(P, self.Ax, self.pr)
            except:
                   PA = self.matrix_multiplydf(P, self.Ax, self.pr)
-           # print(P)
-           # print(PA)
        
            # Perform the LU Decomposition                                                                                                                                                                                                                     
            for j in range(n):
@@ -751,8 +568,6 @@ class MF:
                   PA = self.matrix_multiplyd(P, self.Ax, self.pr)
            except:
                   PA = self.matrix_multiplydf(P, self.Ax, self.pr)
-           # print(P)
-           # print(PA)
        
            # Perform the LU Decomposition                                                                                                                                                                                                                     
            for j in range(n):
@@ -797,7 +612,10 @@ class MF:
                :param M: The matrix to be printed
            """
            for row in Mm:
-               print([round(x, self.pr) for x in row])
+                try:
+                    print([self.mmake(x) for x in row])
+                except:
+                     print([self.mmakec(x) for x in row])
     
        def printmf(self, Mm):
            """
@@ -805,7 +623,10 @@ class MF:
                :param M: The matrix to be printed
            """
            for row in Mm:
-               print([round(self.mmake(x), self.pr) for x in row])
+                try:
+                    print([self.mmake(x) for x in row])
+                except:
+                     print([self.mmakec(x) for x in row])
                
        def csc_groups(self):
               A = self.Ax
@@ -852,10 +673,6 @@ class MF:
        def solve(self, A, B):
               y = self.forward_sub(A, B)
               x = self.backward_sub(A, y)
-              # yv = []
-              # for i in range(len(y)):
-              #    val_yi = y[i]
-              #    yv.append(val_yi)
               
               
               return x
@@ -863,23 +680,19 @@ class MF:
        
        def factor_solve(self, B):
               LU, PIV = self.LU_factor()
-              # print(PIV)
               A = self.Ax
               AA = []
               for i in PIV:
                      AA.append(A[i])
-              # AA = A[PIV]
               x = self.solve(AA, B)
               return x
        
        def factor_solvec(self, B):
               LU, PIV = self.LU_factorc()
-              # print(PIV)
               A = self.Ax
               AA = []
               for i in PIV:
                      AA.append(A[i])
-              # AA = A[PIV]
               x = self.solve(AA, B)
               return x
        
@@ -893,8 +706,6 @@ class MF:
        def bsub(self, U, y):
            """ Row oriented backward substitution """
            Us, US = np.array(U).shape
-           # print(Us, US)
-           # US = len(U[1])
            for i in range(Us-1, 0, -1): 
                for j in range(i+1, US):
                    y[i] -= self.mmake(U[i][j])*self.mmake(y[j])
@@ -904,11 +715,6 @@ class MF:
        def solves(self, LU, B):
               y = self.ufsub(LU, B)
               x = self.bsub(LU, y)
-              # yv = []
-              # for i in range(len(y)):
-              #    val_yi = self.mmake(y[i])
-              #    yv.append(val_yi)
-              # x = self.bsub(LU, yv)
               
               return x
        
@@ -946,6 +752,15 @@ class MF:
               
               for nn in range(n):
                      mm[nn][nn] = self.mmake(1.0)*v
+              return mm
+         
+       def idenvc(self, n, v=complex(1.0, 0.0)):
+              mm = []
+              for ni in range(n):
+                     mm.append([self.mmakec(0.0) for mi in range(n)])
+              
+              for nn in range(n):
+                     mm[nn][nn] = self.mmakec(1.0)*self.mmakec(v)
               return mm
               
                      

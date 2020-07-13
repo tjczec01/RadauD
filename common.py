@@ -25,9 +25,9 @@ def dm(v, pr):
 
 def mv(v, ds):
         try:
-            mp.dps = int(ds)
+            mp.dps = mp.workdps(int(ds))
         except:
-            mp.dps = int(ds[0])
+            mp.dps = mp.workdps(int(ds[0]))
         try:
                mv = mp.mpf(v)
         except:
@@ -38,8 +38,37 @@ def mv(v, ds):
                     mv = mp.mpf(v[0])
                 except:
                     mv = mp.mpc(v[0].real, v[0].imag)
-        # print(mp.prec)
         return mv
+
+def normd(A, prec):
+       M, N = np.array(A, ndmin=2).shape
+       AN = np.array(A, ndmin=2)
+       rows = M
+       cols = N
+       vals = []
+       for i in range(rows):
+              
+              for j in range(cols):
+                     vi = dm(abs(AN[i][j]), prec)**dm(2, prec)
+                     vals.append(vi)
+                     
+       vf = dm(sum(vals), prec)**dm((1/2), prec)
+       return vf
+
+def normm(A, prec):
+       M, N = np.array(A, ndmin=2).shape
+       AN = np.array(A, ndmin=2)
+       rows = M
+       cols = N
+       vals = []
+       for i in range(rows):
+              
+              for j in range(cols):
+                     vi = mv(mp.fabs(AN[i][j]), prec)**mv(2, prec)
+                     vals.append(vi)
+                     
+       vf = mv(mp.fsum(vals), prec)**mv((1/2), prec)
+       return vf
 
 def validate_first_step(first_step, t0, t_bound):
     """Assert that first_step is valid and return it."""
@@ -93,7 +122,7 @@ def norm(x):
     return np.linalg.norm(x) / np.array(x).size ** 0.5
 
 
-def select_initial_step(fun, t0, y0, f0, direction, order, rtol, atol):
+def select_initial_step(fun, t0, y0, f0, direction, orders, rtol, atol, args=None):
     """Empirically select a good initial step.
     The algorithm is described in [1]_.
     Parameters
@@ -105,7 +134,7 @@ def select_initial_step(fun, t0, y0, f0, direction, order, rtol, atol):
     y0 : ndarray, shape (n,)
         Initial value of the dependent variable.
     f0 : ndarray, shape (n,)
-        Initial value of the derivative, i. e. ``fun(t0, y0)``.
+        Initial value of the derivative, i.e., ``fun(t0, y0)``.
     direction : float
         Integration direction.
     order : float
@@ -124,27 +153,73 @@ def select_initial_step(fun, t0, y0, f0, direction, order, rtol, atol):
     .. [1] E. Hairer, S. P. Norsett G. Wanner, "Solving Ordinary Differential
            Equations I: Nonstiff Problems", Sec. II.4.
     """
+    prec = args
+    if args is None:
+         prec = 28
+    else:
+         pass
+    
     if y0.size == 0:
         return np.inf
-
-    scale = atol + np.abs(y0) * rtol
-    d0 = norm(y0 / scale)
-    d1 = norm(f0 / scale)
-    if d0 < 1e-5 or d1 < 1e-5:
-        h0 = 1e-6
-    else:
-        h0 = 0.01 * d0 / d1
-
-    y1 = y0 + h0 * direction * f0
-    f1 = fun(t0 + h0 * direction, y1)
-    d2 = norm((f1 - f0) / scale) / h0
-
-    if d1 <= 1e-15 and d2 <= 1e-15:
-        h1 = max(1e-6, h0 * 1e-3)
-    else:
-        h1 = (0.01 / max(d1, d2)) ** (1 / (order + 1))
-
-    return min(100 * h0, h1)
+    try:
+              scale = mv(atol, prec) + np.array([mv(mp.fabs(i), prec) for i in y0]) * mv(rtol, prec)
+              d0 = normm(np.array([mv(mp.fabs(i), prec) for i in y0]) / scale, prec)
+              d1 = normm(f0 / scale, prec)
+              if d0 < 1e-5 or d1 < 1e-5:
+                  h0 = mv(1e-6, prec)
+              else:
+                  h0 = mv(0.01, prec) * d0 / d1
+              y1 = np.array([mv(mp.fabs(i), prec) for i in y0]) + h0 * mv(direction, prec) * f0 #np.array([mv(i, prec) for i in f0]) #f0
+              f1 = fun(mv(t0, prec) + h0 * mv(direction, prec), y1)
+              d2 = normm((f1 - f0) / scale , prec) / h0
+          
+              if d1 <= 1e-15 and d2 <= 1e-15:
+                  h1 = max(1e-6, h0 * 1e-3)
+              else:
+                  h1 = (mv(0.01, prec) / max(d1, d2)) ** mv((1 / (orders + 1)), prec)
+          
+              return min(mv(100, prec) * h0, h1)
+    
+    except:
+         
+         try:
+              scale = atol + np.abs(y0) * rtol
+              d0 = norm(y0 / scale)
+              d1 = norm(f0 / scale)
+              if d0 < 1e-5 or d1 < 1e-5:
+                  h0 = 1e-6
+              else:
+                  h0 = 0.01 * d0 / d1
+              y1 = y0 + h0 * direction *f0
+              f1 = fun(t0 + h0 * direction, y1)
+              d2 = norm((f1 - f0) / scale) / h0
+          
+              if d1 <= 1e-15 and d2 <= 1e-15:
+                  h1 = max(1e-6, h0 * 1e-3)
+              else:
+                  h1 = (0.01 / max(d1, d2)) ** (1 / (orders + 1))
+          
+              return min(100 * h0, h1)
+         
+         except:
+              scale = dm(atol, prec) + np.array([dm(np.abs(i), prec) for i in y0]) * dm(rtol, prec)
+              d0 = normd(np.array([dm(np.abs(i), prec) for i in y0]) / scale, prec)
+              d1 = normd(f0 / scale, prec)
+              if d0 < 1e-5 or d1 < 1e-5:
+                  h0 = dm(1e-6, prec)
+              else:
+                  h0 = dm(0.01, prec) * d0 / d1
+              y1 = np.array([dm(np.abs(i), prec) for i in y0]) + h0 * dm(direction, prec) * f0 #np.array([dm(i, prec) for i in f0]) #f0
+              f1 = fun(dm(t0, prec) + h0 * dm(direction, prec), y1)
+              d2 = normd((f1 - f0) / scale , prec) / h0
+          
+              if d1 <= 1e-15 and d2 <= 1e-15:
+                  h1 = max(1e-6, h0 * 1e-3)
+              else:
+                  h1 = (dm(0.01, prec) / max(d1, d2)) ** dm((1 / (orders + 1)), prec)
+          
+              return min(100 * h0, h1)
+    
 
 
 class OdeSolution(object):
@@ -221,17 +296,17 @@ class OdeSolution(object):
         -------
         y : ndarray, shape (n_states,) or (n_states, n_points)
             Computed values. Shape depends on whether `t` is a scalar or a
-            1-d array.
+            1-D array.
         """
         t = np.asarray(t)
 
         if t.ndim == 0:
             return self._call_single(t)
 
-        order = np.argsort(t)
-        reverse = np.empty_like(order)
-        reverse[order] = np.arange(order.shape[0])
-        t_sorted = t[order]
+        orders = np.argsort(t)
+        reverse = np.empty_like(orders)
+        reverse[orders] = np.arange(orders.shape[0])
+        t_sorted = t[orders]
 
         # See comment in self._call_single.
         if self.ascending:
@@ -277,7 +352,7 @@ def num_jac(fun, t, y, f, threshold, factor, sparsity=None):
     difference significantly separated from its round-off error which
     approximately equals ``EPS * np.abs(f)``. It reduces a possibility of a
     huge error and assures that the estimated derivative are reasonably close
-    to the true values (i.e. the finite difference approximation is at least
+    to the true values (i.e., the finite difference approximation is at least
     qualitatively reflects the structure of the true Jacobian).
     Parameters
     ----------
@@ -291,7 +366,7 @@ def num_jac(fun, t, y, f, threshold, factor, sparsity=None):
         Value of the right hand side at (t, y).
     threshold : float
         Threshold for `y` value used for computing the step size as
-        ``factor * np.maximum(np.abs(y), threshold)``. Typically the value of
+        ``factor * np.maximum(np.abs(y), threshold)``. Typically, the value of
         absolute tolerance (atol) for a solver should be passed as `threshold`.
     factor : ndarray with shape (n,) or None
         Factor to use for computing the step size. Pass None for the very
@@ -341,11 +416,11 @@ def _dense_num_jac(fun, t, y, f, h, factor, y_scale):
     n = y.shape[0]
     h_vecs = np.diag(h)
     f_new = fun(t, y[:, None] + h_vecs)
-    diff = f_new - f[:, None]
+    diff = f_new - np.array(f)[:, None]
     max_ind = np.argmax(np.abs(diff), axis=0)
     r = np.arange(n)
     max_diff = np.abs(diff[max_ind, r])
-    scale = np.maximum(np.abs(f[max_ind]), np.abs(f_new[max_ind, r]))
+    scale = np.maximum(np.abs(np.array(f)[max_ind]), np.abs(np.array(f_new)[max_ind, r]))
 
     diff_too_small = max_diff < NUM_JAC_DIFF_REJECT * scale
     if np.any(diff_too_small):

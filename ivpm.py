@@ -4,32 +4,33 @@ Created on Wed Jun 24 11:46:52 2020
 
 Github: https://github.com/tjczec01
 
-@author: Travis J Czechorski 
+@author: Travis J Czechorski
 
 E-mail: tjczec01@gmail.com
 """
 from __future__ import division, print_function, absolute_import
 import os
+import sys
+import inspect
 import numpy as np
+from scipy.optimize import OptimizeResult, brentq
 from RadauM import RadauM
 from base import OdeSolver
-from common import EPS, OdeSolution, dm
-import mpfunctions as mf
-from scipy.optimize import brentq, OptimizeResult
-import inspect
-import sys
+from common import OdeSolution
+
+EPS = 2.220446049250313e-16
+
 plist = list(sys.path)
 ppath = os.path.dirname(os.path.abspath(__file__))
-pth = '{}'.format(ppath)
-if pth in plist:
-       pass
-       
-else:
-       sys.path.append(r'{}'.format(ppath))
-       
-__name__ = "ivpm"
+PTH = '{}'.format(ppath)
 
-__all__ = ["OdeResult", "prepare_events", "solve_event_equation", "handle_events", "find_active_events", "solve_ivpm"]
+if PTH in plist:
+    pass
+else:
+    sys.path.append(r'{}'.format(ppath))
+
+# __all__ = ["OdeResult", "prepare_events", "solve_event_equation",
+#            "handle_events", "find_active_events", "solve_ivpm"]
 
 METHODS = {'RadauM' : RadauM}
 
@@ -37,7 +38,31 @@ MESSAGES = {0: "The solver successfully reached the end of the integration inter
             1: "A termination event occurred."}
 
 class OdeResult(OptimizeResult):
-    pass
+    """Continuous ODE solution.
+    It is organized as a collection of `DenseOutput` objects which represent
+    local interpolants. It provides an algorithm to select a right interpolant
+    for each given point.
+    The interpolants cover the range between `t_min` and `t_max` (see
+    Attributes below). Evaluation outside this interval is not forbidden, but
+    the accuracy is not guaranteed.
+    When evaluating at a breakpoint (one of the values in `ts`) a segment with
+    the lower index is selected.
+    Parameters
+    ----------
+    ts : array_like, shape (n_segments + 1,)
+        Time instants between which local interpolants are defined. Must
+        be strictly increasing or decreasing (zero segment with two points is
+        also allowed).
+    interpolants : list of DenseOutput with n_segments elements
+        Local interpolants. An i-th interpolant is assumed to be defined
+        between ``ts[i]`` and ``ts[i + 1]``.
+    Attributes
+    ----------
+    t_min, t_max : float
+        Time range of the interpolation.
+    """
+    __name__ = "OdeResult"
+    # pass
 
 
 def prepare_events(events):
@@ -65,7 +90,7 @@ def prepare_events(events):
     return events, is_terminal, direction
 
 
-def solve_event_equation(event, sol, t_old, t):
+def solve_event_equation(event, sol, t_old, t_v):
     """Solve an equation corresponding to an ODE event.
     The equation is ``event(t, y(t)) = 0``, here ``y(t)`` is known from an
     ODE solver using some sort of interpolation. It is solved by
@@ -85,12 +110,13 @@ def solve_event_equation(event, sol, t_old, t):
     root : float
         Found solution.
     """
-    from scipy.optimize import brentq
-    return brentq(lambda t: event(t, sol(t)), t_old, t,
-                  xtol=4 * EPS, rtol=4 * EPS)
+
+    return brentq(lambda t_v: event(t_v, sol(t_v)), t_old, t_v,
+                  xtol=4.0 * EPS, rtol=4.0 * EPS)
 
 
-def handle_events(sol, events, active_events, is_terminal, t_old, t):
+def handle_events(sol, events, active_events, is_terminal,
+                  t_l):
     """Helper function to handle events.
     Parameters
     ----------
@@ -115,29 +141,28 @@ def handle_events(sol, events, active_events, is_terminal, t_old, t):
     terminate : bool
         Whether a terminal event occurred.
     """
-    roots = [solve_event_equation(events[event_index], sol, t_old, t)
+    t_old = t_l[0]
+    t_v = t_l[1]
+    roots = [solve_event_equation(events[event_index], sol, t_old, t_v)
              for event_index in active_events]
-
     roots = np.asarray(roots)
-
     if np.any(is_terminal[active_events]):
-        if t > t_old:
+        if t_v > t_old:
             order = np.argsort(roots)
         else:
             order = np.argsort(-roots)
         active_events = active_events[order]
         roots = roots[order]
-        t = np.nonzero(is_terminal[active_events])[0][0]
-        active_events = active_events[:t + 1]
-        roots = roots[:t + 1]
+        t_v = np.nonzero(is_terminal[active_events])[0][0]
+        active_events = active_events[:t_v + 1]
+        roots = roots[:t_v + 1]
         terminate = True
     else:
         terminate = False
-
     return active_events, roots, terminate
 
 
-def find_active_events(g, g_new, direction):
+def find_active_events(g_0, g_new, direction):
     """Find which event occurred during an integration step.
     Parameters
     ----------
@@ -150,21 +175,187 @@ def find_active_events(g, g_new, direction):
     active_events : ndarray
         Indices of events which occurred during the step.
     """
-    g, g_new = np.asarray(g), np.asarray(g_new)
-    up = (g <= 0) & (g_new >= 0)
-    down = (g >= 0) & (g_new <= 0)
-    either = up | down
-    mask = (up & (direction > 0) |
+    g_0, g_new = np.asarray(g_0), np.asarray(g_new)
+    u_p = (g_0 <= 0) & (g_new >= 0)
+    down = (g_0 >= 0) & (g_new <= 0)
+    either = u_p | down
+    mask = (u_p & (direction > 0) |
             down & (direction < 0) |
             either & (direction == 0))
 
     return np.nonzero(mask)[0]
 
 
-def solve_ivpm(fun, t_span, y0, method='RK45', t_eval=None, dense_output=False,
-              events=None, vectorized=False, args=None, **options):
-    """Solve an initial value problem for a system of ODEs.
-    This function numerically integrates a system of ordinary differential
+# def solve_ivpm(fun, t_span, y0, method='RK45', t_eval=None, dense_output=False,
+#     solve_ivpm.__name__ = "solve_ivpm"
+#     prec = args
+#     if method not in METHODS and not (
+#             inspect.isclass(method) and issubclass(method, OdeSolver)):
+#         raise ValueError("`method` must be one of {} or OdeSolver class."
+#                           .format(METHODS))
+
+#     t0, tf = float(t_span[0]), float(t_span[1])
+
+#     if args is not None:
+#         # Wrap the user's fun (and jac, if given) in lambdas to hide the
+#         # additional parameters.  Pass in the original fun as a keyword
+#         # argument to keep it in the scope of the lambda.
+#         fun = lambda t, x, fun=fun: fun(t, x, *args)
+#         jac = options.get('jac')
+#         if callable(jac):
+#             options['jac'] = lambda t, x: jac(t, x, *args)
+
+#     if t_eval is not None:
+#         t_eval = np.asarray(t_eval)
+#         if t_eval.ndim != 1:
+#             raise ValueError("`t_eval` must be 1-dimensional.")
+
+#         if np.any(t_eval < min(t0, tf)) or np.any(t_eval > max(t0, tf)):
+#             raise ValueError("Values in `t_eval` are not within `t_span`.")
+
+#         d = np.diff(t_eval)
+#         if tf > t0 and np.any(d <= 0) or tf < t0 and np.any(d >= 0):
+#             raise ValueError("Values in `t_eval` are not properly sorted.")
+
+#         if tf > t0:
+#             t_eval_i = 0
+#         else:
+#             # Make order of t_eval decreasing to use np.searchsorted.
+#             t_eval = t_eval[::-1]
+#             # This will be an upper bound for slices.
+#             t_eval_i = t_eval.shape[0]
+
+#     if method in METHODS:
+#         method = METHODS[method]
+
+#     solver = method(fun, t0, y0, tf, vectorized=vectorized, **options)
+
+#     if t_eval is None:
+#         # print(y0)
+#         ts = [t0]
+#         y_s = [y0]
+#     elif t_eval is not None and dense_output:
+#         ts = []
+#         ti = [t0]
+#         y_s = []
+#     else:
+#         ts = []
+#         y_s = []
+
+#     interpolants = []
+
+#     events, is_terminal, event_dir = prepare_events(events)
+
+#     if events is not None:
+#         if args is not None:
+#             # Wrap user functions in lambdas to hide the additional parameters.
+#             # The original event function is passed as a keyword argument to the
+#             # lambda to keep the original function in scope (i.e. avoid the
+#             # late binding closure "gotcha").
+#             events = [lambda t, x, event=event: event(t, x, *args)
+#                       for event in events]
+#         g = [event(t0, y0) for event in events]
+#         t_events = [[] for _ in range(len(events))]
+#         y_events = [[] for _ in range(len(events))]
+#     else:
+#         t_events = None
+#         y_events = None
+
+#     status = None
+#     while status is None:
+#         message = solver.step()
+
+#         if solver.status == 'finished':
+#             status = 0
+#         elif solver.status == 'failed':
+#             status = -1
+#             break
+
+#         t_old = solver.t_old
+#         t = solver.t
+#         y = solver.y
+
+#         if dense_output:
+#             sol = solver.dense_output()
+#             interpolants.append(sol)
+#         else:
+#             sol = None
+
+#         if events is not None:
+#             g_new = [event(t, y) for event in events]
+#             active_events = find_active_events(g, g_new, event_dir)
+#             if active_events.size > 0:
+#                 if sol is None:
+#                     sol = solver.dense_output()
+
+#                 root_indices, roots, terminate = handle_events(
+#                     sol, events, active_events, is_terminal, t_old, t)
+
+#                 for e, te in zip(root_indices, roots):
+#                     t_events[e].append(te)
+#                     y_events[e].append(sol(te))
+
+#                 if terminate:
+#                     status = 1
+#                     t = roots[-1]
+#                     y = sol(t)
+
+#             g = g_new
+
+#         if t_eval is None:
+#             ts.append(t)
+#             y_s.append(y)
+#         else:
+#             # The value in t_eval equal to t will be included.
+#             if solver.direction > 0:
+#                 t_eval_i_new = np.searchsorted(t_eval, t, side='right')
+#                 t_eval_step = t_eval[t_eval_i:t_eval_i_new]
+#             else:
+#                 t_eval_i_new = np.searchsorted(t_eval, t, side='left')
+#                 # It has to be done with two slice operations, because
+#                 # you can't slice to 0-th element inclusive using backward
+#                 # slicing.
+#                 t_eval_step = t_eval[t_eval_i_new:t_eval_i][::-1]
+
+#             if t_eval_step.size > 0:
+#                 if sol is None:
+#                     sol = solver.dense_output()
+#                 ts.append(t_eval_step)
+#                 y_s.append(sol(t_eval_step))
+#                 t_eval_i = t_eval_i_new
+
+#         if t_eval is not None and dense_output:
+#             ti.append(t)
+
+#     message = MESSAGES.get(status, message)
+
+#     if t_events is not None:
+#         t_events = [np.asarray(te) for te in t_events]
+#         y_events = [np.asarray(ye) for ye in y_events]
+
+#     if t_eval is None:
+#         ts = np.array(ts)
+#         y_s = np.vstack(y_s).T
+#     else:
+#         ts = np.hstack(ts)
+#         y_s = np.hstack(y_s)
+
+#     if dense_output:
+#         if t_eval is None:
+#             sol = OdeSolution(ts, interpolants)
+#         else:
+#             sol = OdeSolution(ti, interpolants)
+#     else:
+#         sol = None
+
+#     return OdeResult(t=ts, y=y_s, sol=sol, t_events=t_events, y_events=y_events,
+#                       nfev=solver.nfev, njev=solver.njev, nlu=solver.nlu,
+#                       status=status, message=message, success=status >= 0)
+
+def solve_ivpm(fun, t_span, y_0, method='RadauM', t_eval=None, dense_output=False,
+               events=None, vectorized=False, args=None, **options):
+    """Solve an initial value problem for a sy_stem of ODEs.
+    This function numerically integrates a sy_stem of ordinary differential
     equations given an initial value::
         dy / dt = f(t, y)
         y(t0) = y0
@@ -177,12 +368,12 @@ def solve_ivpm(fun, t_span, y0, method='RK45', t_eval=None, dense_output=False,
     that for stiff ODE solvers, the right-hand side must be
     complex-differentiable (satisfy Cauchy-Riemann equations [11]_).
     To solve a problem in the complex domain, pass y0 with a complex data type.
-    Another option always available is to rewrite your problem for real and
+    Another option alway_s available is to rewrite your problem for real and
     imaginary parts separately.
     Parameters
     ----------
     fun : callable
-        Right-hand side of the system. The calling signature is ``fun(t, y)``.
+        Right-hand side of the sy_stem. The calling signature is ``fun(t, y)``.
         Here `t` is a scalar, and there are two options for the ndarray `y`:
         It can either have shape (n,); then `fun` must return array_like with
         shape (n,). Alternatively it can have shape (n, k); then `fun`
@@ -263,7 +454,7 @@ def solve_ivpm(fun, t_span, y0, method='RK45', t_eval=None, dense_output=False,
                 and vice versa if `direction` is negative. If 0, then either
                 direction will trigger event. Implicitly 0 if not assigned.
         You can assign attributes like ``event.terminal = True`` to any
-        function in Python. 
+        function in Python.
     vectorized : bool, optional
         Whether `fun` is implemented in a vectorized fashion. Default is False.
     args : tuple, optional
@@ -292,10 +483,10 @@ def solve_ivpm(fun, t_span, y0, method='RK45', t_eval=None, dense_output=False,
         passing array_like with shape (n,) for `atol`. Default values are
         1e-3 for `rtol` and 1e-6 for `atol`.
     jac : array_like, sparse_matrix, callable or None, optional
-        Jacobian matrix of the right-hand side of the system with respect
+        Jacobian matrix of the right-hand side of the sy_stem with respect
         to y, required by the 'Radau', 'BDF' and 'LSODA' method. The
         Jacobian matrix has shape (n, n) and its element (i, j) is equal to
-        ``d f_i / d y_j``.  There are three ways to define the Jacobian:
+        ``d f_i / d y_j``.  There are three way_s to define the Jacobian:
             * If array_like or sparse_matrix, the Jacobian is assumed to
               be constant. Not supported by 'LSODA'.
             * If callable, the Jacobian is assumed to depend on both
@@ -312,7 +503,7 @@ def solve_ivpm(fun, t_span, y0, method='RK45', t_eval=None, dense_output=False,
         is ignored if `jac` is not `None`. If the Jacobian has only few
         non-zero elements in *each* row, providing the sparsity structure
         will greatly speed up the computations [10]_. A zero entry means that
-        a corresponding element in the Jacobian is always zero. If None
+        a corresponding element in the Jacobian is alway_s zero. If None
         (default), the Jacobian is assumed to be dense.
         Not supported by 'LSODA', see `lband` and `uband` instead.
     lband, uband : int or None, optional
@@ -326,7 +517,7 @@ def solve_ivpm(fun, t_span, y0, method='RK45', t_eval=None, dense_output=False,
         illustration).  These parameters can be also used with ``jac=None`` to
         reduce the number of Jacobian elements estimated by finite differences.
     min_step : float, optional
-        The minimum allowed step size for 'LSODA' method. 
+        The minimum allowed step size for 'LSODA' method.
         By default `min_step` is zero.
     Returns
     -------
@@ -339,7 +530,7 @@ def solve_ivpm(fun, t_span, y0, method='RK45', t_eval=None, dense_output=False,
         Found solution as `OdeSolution` instance; None if `dense_output` was
         set to False.
     t_events : list of ndarray or None
-        Contains for each event type a list of arrays at which an event of
+        Contains for each event type a list of array_s at which an event of
         that type event was detected. None if `events` was None.
     y_events : list of ndarray or None
         For each value of `t_events`, the corresponding value of the solution.
@@ -363,34 +554,34 @@ def solve_ivpm(fun, t_span, y0, method='RK45', t_eval=None, dense_output=False,
     References
     ----------
     .. [1] J. R. Dormand, P. J. Prince, "A family of embedded Runge-Kutta
-           formulae", Journal of Computational and Applied Mathematics, Vol. 6,
-           No. 1, pp. 19-26, 1980.
+            formulae", Journal of Computational and Applied Mathematics, Vol. 6,
+            No. 1, pp. 19-26, 1980.
     .. [2] L. W. Shampine, "Some Practical Runge-Kutta Formulas", Mathematics
-           of Computation,, Vol. 46, No. 173, pp. 135-150, 1986.
+            of Computation,, Vol. 46, No. 173, pp. 135-150, 1986.
     .. [3] P. Bogacki, L.F. Shampine, "A 3(2) Pair of Runge-Kutta Formulas",
-           Appl. Math. Lett. Vol. 2, No. 4. pp. 321-325, 1989.
+            Appl. Math. Lett. Vol. 2, No. 4. pp. 321-325, 1989.
     .. [4] E. Hairer, G. Wanner, "Solving Ordinary Differential Equations II:
-           Stiff and Differential-Algebraic Problems", Sec. IV.8.
+            Stiff and Differential-Algebraic Problems", Sec. IV.8.
     .. [5] `Backward Differentiation Formula
             <https://en.wikipedia.org/wiki/Backward_differentiation_formula>`_
             on Wikipedia.
     .. [6] L. F. Shampine, M. W. Reichelt, "THE MATLAB ODE SUITE", SIAM J. SCI.
-           COMPUTE., Vol. 18, No. 1, pp. 1-22, January 1997.
-    .. [7] A. C. Hindmarsh, "ODEPACK, A Systematized Collection of ODE
-           Solvers," IMACS Transactions on Scientific Computation, Vol 1.,
-           pp. 55-64, 1983.
+            COMPUTE., Vol. 18, No. 1, pp. 1-22, January 1997.
+    .. [7] A. C. Hindmarsh, "ODEPACK, A Sy_stematized Collection of ODE
+            Solvers," IMACS Transactions on Scientific Computation, Vol 1.,
+            pp. 55-64, 1983.
     .. [8] L. Petzold, "Automatic selection of methods for solving stiff and
-           nonstiff systems of ordinary differential equations", SIAM Journal
-           on Scientific and Statistical Computing, Vol. 4, No. 1, pp. 136-148,
-           1983.
+            nonstiff sy_stems of ordinary differential equations", SIAM Journal
+            on Scientific and Statistical Computing, Vol. 4, No. 1, pp. 136-148,
+            1983.
     .. [9] `Stiff equation <https://en.wikipedia.org/wiki/Stiff_equation>`_ on
-           Wikipedia.
+            Wikipedia.
     .. [10] A. Curtis, M. J. D. Powell, and J. Reid, "On the estimation of
             sparse Jacobian matrices", Journal of the Institute of Mathematics
             and its Applications, 13, pp. 117-120, 1974.
     .. [11] `Cauchy-Riemann equations
-             <https://en.wikipedia.org/wiki/Cauchy-Riemann_equations>`_ on
-             Wikipedia.
+              <https://en.wikipedia.org/wiki/Cauchy-Riemann_equations>`_ on
+              Wikipedia.
     .. [12] `Lotka-Volterra equations
             <https://en.wikipedia.org/wiki/Lotka%E2%80%93Volterra_equations>`_
             on Wikipedia.
@@ -410,9 +601,9 @@ def solve_ivpm(fun, t_span, y0, method='RK45', t_eval=None, dense_output=False,
     >>> print(sol.y)
     [[2.         1.88836035 1.06327177 0.43319312 0.18017253 0.07483045
       0.03107158 0.01350781]
-     [4.         3.7767207  2.12654355 0.86638624 0.36034507 0.14966091
+      [4.         3.7767207  2.12654355 0.86638624 0.36034507 0.14966091
       0.06214316 0.02701561]
-     [8.         7.5534414  4.25308709 1.73277247 0.72069014 0.29932181
+      [8.         7.5534414  4.25308709 1.73277247 0.72069014 0.29932181
       0.12428631 0.05403123]]
     Specifying points where the solution is desired.
     >>> sol = solve_ivp(exponential_decay, [0, 10], [2, 4, 8],
@@ -421,8 +612,8 @@ def solve_ivpm(fun, t_span, y0, method='RK45', t_eval=None, dense_output=False,
     [ 0  1  2  4 10]
     >>> print(sol.y)
     [[2.         1.21305369 0.73534021 0.27066736 0.01350938]
-     [4.         2.42610739 1.47068043 0.54133472 0.02701876]
-     [8.         4.85221478 2.94136085 1.08266944 0.05403753]]
+      [4.         2.42610739 1.47068043 0.54133472 0.02701876]
+      [8.         4.85221478 2.94136085 1.08266944 0.05403753]]
     Cannon fired upward with terminal event upon impact. The ``terminal`` and
     ``direction`` fields of an event are applied by monkey patching a function.
     Here ``y[0]`` is position and ``y[1]`` is velocity. The projectile starts
@@ -437,7 +628,7 @@ def solve_ivpm(fun, t_span, y0, method='RK45', t_eval=None, dense_output=False,
     [array([40.])]
     >>> print(sol.t)
     [0.00000000e+00 9.99900010e-05 1.09989001e-03 1.10988901e-02
-     1.11088891e-01 1.11098890e+00 1.11099890e+01 4.00000000e+01]
+      1.11088891e-01 1.11098890e+00 1.11099890e+01 4.00000000e+01]
     Use `dense_output` and `events` to find position, which is 100, at the apex
     of the cannonball's trajectory. Apex is not defined as terminal, so both
     apex and hit_ground are found. There is no information at t=20, so the sol
@@ -445,18 +636,18 @@ def solve_ivpm(fun, t_span, y0, method='RK45', t_eval=None, dense_output=False,
     by setting ``dense_output=True``. Alternatively, the `y_events` attribute
     can be used to access the solution at the time of the event.
     >>> def apex(t, y): return y[1]
-    >>> sol = solve_ivp(upward_cannon, [0, 100], [0, 10], 
+    >>> sol = solve_ivp(upward_cannon, [0, 100], [0, 10],
     ...                 events=(hit_ground, apex), dense_output=True)
     >>> print(sol.t_events)
     [array([40.]), array([20.])]
     >>> print(sol.t)
     [0.00000000e+00 9.99900010e-05 1.09989001e-03 1.10988901e-02
-     1.11088891e-01 1.11098890e+00 1.11099890e+01 4.00000000e+01]
+      1.11088891e-01 1.11098890e+00 1.11099890e+01 4.00000000e+01]
     >>> print(sol.sol(sol.t_events[1][0]))
     [100.   0.]
     >>> print(sol.y_events)
     [array([[-5.68434189e-14, -1.00000000e+01]]), array([[1.00000000e+02, 1.77635684e-15]])]
-    As an example of a system with additional parameters, we'll implement
+    As an example of a sy_stem with additional parameters, we'll implement
     the Lotka-Volterra equations [12]_.
     >>> def lotkavolterra(t, z, a, b, c, d):
     ...     x, y = z
@@ -473,16 +664,13 @@ def solve_ivpm(fun, t_span, y0, method='RK45', t_eval=None, dense_output=False,
     >>> plt.plot(t, z.T)
     >>> plt.xlabel('t')
     >>> plt.legend(['x', 'y'], shadow=True)
-    >>> plt.title('Lotka-Volterra System')
+    >>> plt.title('Lotka-Volterra Sy_stem')
     >>> plt.show()
     """
-    prec = args
-    if method not in METHODS and not (
-            inspect.isclass(method) and issubclass(method, OdeSolver)):
-        raise ValueError("`method` must be one of {} or OdeSolver class."
-                         .format(METHODS))
+    if method not in METHODS and not (inspect.isclass(method) and issubclass(method, OdeSolver)):
+        raise ValueError("`method` must be one of {} or OdeSolver class.".format(METHODS))
 
-    t0, tf = float(t_span[0]), float(t_span[1])
+    t_0, t_f = float(t_span[0]), float(t_span[1])
 
     if args is not None:
         # Wrap the user's fun (and jac, if given) in lambdas to hide the
@@ -498,14 +686,14 @@ def solve_ivpm(fun, t_span, y0, method='RK45', t_eval=None, dense_output=False,
         if t_eval.ndim != 1:
             raise ValueError("`t_eval` must be 1-dimensional.")
 
-        if np.any(t_eval < min(t0, tf)) or np.any(t_eval > max(t0, tf)):
+        if np.any(t_eval < min(t_0, t_f)) or np.any(t_eval > max(t_0, t_f)):
             raise ValueError("Values in `t_eval` are not within `t_span`.")
 
-        d = np.diff(t_eval)
-        if tf > t0 and np.any(d <= 0) or tf < t0 and np.any(d >= 0):
+        d_p = np.diff(t_eval)
+        if t_f > t_0 and np.any(d_p <= 0) or t_f < t_0 and np.any(d_p >= 0):
             raise ValueError("Values in `t_eval` are not properly sorted.")
 
-        if tf > t0:
+        if t_f > t_0:
             t_eval_i = 0
         else:
             # Make order of t_eval decreasing to use np.searchsorted.
@@ -514,21 +702,21 @@ def solve_ivpm(fun, t_span, y0, method='RK45', t_eval=None, dense_output=False,
             t_eval_i = t_eval.shape[0]
 
     if method in METHODS:
-        method = METHODS[method]
+        method = METHODS.get('RadauM', [RadauM])
 
-    solver = method(fun, t0, y0, tf, vectorized=vectorized, **options)
+    solver = method(fun, t_0, y_0, t_f, vectorized=vectorized, **options)
 
     if t_eval is None:
         # print(y0)
-        ts = [t0]
-        ys = [dm(y0[0], prec)]
+        t_s = [t_0]
+        y_s = [y_0]
     elif t_eval is not None and dense_output:
-        ts = []
-        ti = [t0]
-        ys = []
+        t_s = []
+        t_i = [t_0]
+        y_s = []
     else:
-        ts = []
-        ys = []
+        t_s = []
+        y_s = []
 
     interpolants = []
 
@@ -540,9 +728,9 @@ def solve_ivpm(fun, t_span, y0, method='RK45', t_eval=None, dense_output=False,
             # The original event function is passed as a keyword argument to the
             # lambda to keep the original function in scope (i.e. avoid the
             # late binding closure "gotcha").
-            events = [lambda t, x, event=event: event(t, x, *args)
+            events = [lambda t_v, x, event=event: event(t_v, x, *args)
                       for event in events]
-        g = [event(t0, y0) for event in events]
+        g_0 = [event(t_0, y_0) for event in events]
         t_events = [[] for _ in range(len(events))]
         y_events = [[] for _ in range(len(events))]
     else:
@@ -560,8 +748,8 @@ def solve_ivpm(fun, t_span, y0, method='RK45', t_eval=None, dense_output=False,
             break
 
         t_old = solver.t_old
-        t = solver.t
-        y = solver.y
+        t_v = solver.t
+        y_v = solver.y
 
         if dense_output:
             sol = solver.dense_output()
@@ -570,36 +758,36 @@ def solve_ivpm(fun, t_span, y0, method='RK45', t_eval=None, dense_output=False,
             sol = None
 
         if events is not None:
-            g_new = [event(t, y) for event in events]
-            active_events = find_active_events(g, g_new, event_dir)
+            g_new = [event(t_v, y_v) for event in events]
+            active_events = find_active_events(g_0, g_new, event_dir)
             if active_events.size > 0:
                 if sol is None:
                     sol = solver.dense_output()
-
+                t_l = [t_old, t_v]
                 root_indices, roots, terminate = handle_events(
-                    sol, events, active_events, is_terminal, t_old, t)
+                    sol, events, active_events, is_terminal, t_l)
 
-                for e, te in zip(root_indices, roots):
-                    t_events[e].append(te)
-                    y_events[e].append(sol(te))
+                for e_v, t_e in zip(root_indices, roots):
+                    t_events[e_v].append(t_e)
+                    y_events[e_v].append(sol(t_e))
 
                 if terminate:
                     status = 1
-                    t = roots[-1]
-                    y = sol(t)
+                    t_v = roots[-1]
+                    y_v = sol(t_v)
 
-            g = g_new
+            g_0 = g_new
 
         if t_eval is None:
-            ts.append(t)
-            ys.append(dm(y, prec))
+            t_s.append(t_v)
+            y_s.append(y_v)
         else:
             # The value in t_eval equal to t will be included.
             if solver.direction > 0:
-                t_eval_i_new = np.searchsorted(t_eval, t, side='right')
+                t_eval_i_new = np.searchsorted(t_eval, t_v, side='right')
                 t_eval_step = t_eval[t_eval_i:t_eval_i_new]
             else:
-                t_eval_i_new = np.searchsorted(t_eval, t, side='left')
+                t_eval_i_new = np.searchsorted(t_eval, t_v, side='left')
                 # It has to be done with two slice operations, because
                 # you can't slice to 0-th element inclusive using backward
                 # slicing.
@@ -608,37 +796,34 @@ def solve_ivpm(fun, t_span, y0, method='RK45', t_eval=None, dense_output=False,
             if t_eval_step.size > 0:
                 if sol is None:
                     sol = solver.dense_output()
-                ts.append(t_eval_step)
-                ys.append(sol(t_eval_step).tolist()[-1])
+                t_s.append(t_eval_step)
+                y_s.append(sol(t_eval_step))
                 t_eval_i = t_eval_i_new
-        
+
         if t_eval is not None and dense_output:
-            ti.append(t)
+            t_i.append(t_v)
 
     message = MESSAGES.get(status, message)
 
     if t_events is not None:
-        t_events = [np.asarray(te) for te in t_events]
+        t_events = [np.asarray(t_e) for t_e in t_events]
         y_events = [np.asarray(ye) for ye in y_events]
 
     if t_eval is None:
-        ts = np.array(ts)
-        ys = mf.MF([ys], prec).TD()
+        t_s = np.array(t_s)
+        y_s = np.vstack(y_s).T
     else:
-        ts = np.hstack(ts)
-        ys = mf.MF([np.hstack(ys)], prec).decfunc()
+        t_s = np.hstack(t_s)
+        y_s = np.hstack(y_s)
 
     if dense_output:
         if t_eval is None:
-            sol = OdeSolution(ts, interpolants)
+            sol = OdeSolution(t_s, interpolants)
         else:
-            sol = OdeSolution(ti, interpolants)
+            sol = OdeSolution(t_i, interpolants)
     else:
         sol = None
 
-    return OdeResult(t=ts, y=ys, sol=sol, t_events=t_events, y_events=y_events,
+    return OdeResult(t=t_s, y=y_s, sol=sol, t_events=t_events, y_events=y_events,
                      nfev=solver.nfev, njev=solver.njev, nlu=solver.nlu,
                      status=status, message=message, success=status >= 0)
-
-solve_ivpm.__name_ = "solve_ivpm"
-solve_ivpm.__module_ = "solve_ivpm"

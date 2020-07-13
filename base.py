@@ -19,7 +19,7 @@ def check_arguments(fun, y0, support_complex):
         raise ValueError("`y0` must be 1-dimensional.")
 
     def fun_wrapped(t, y):
-        return np.asarray(fun(t, y), dtype=dtype)
+        return np.asarray(fun(t, y))
 
     return fun_wrapped, y0
 
@@ -167,7 +167,7 @@ class OdeSolver(object):
             raise RuntimeError("Attempt to step on a failed or finished "
                                "solver.")
 
-        if self.n == 0 or self.t == self.t_bound:
+        if self.n == 0 or self.t == self.t_bound or float(self.t) == float(self.t_bound):
             # Handle corner cases of empty solver or no integration.
             self.t_old = self.t
             self.t = self.t_bound
@@ -181,7 +181,7 @@ class OdeSolver(object):
                 self.status = 'failed'
             else:
                 self.t_old = t
-                if self.direction * (float(self.t) - self.t_bound) >= 0:
+                if self.direction * (float(self.t) - self.t_bound) >= 0 or float(self.direction) * (float(t) - float(self.t_bound)) >= 0.0:
                     self.status = 'finished'
 
         return message
